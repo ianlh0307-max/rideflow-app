@@ -967,8 +967,15 @@ userFoodPlan = document.getElementById("foodPref").value;
 function showScreen(name, btn){
   document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
   document.getElementById("screen-" + name).classList.remove("hidden");
+
   document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
+
+  if(btn){
+    btn.classList.add("active");
+  }
+
+  const menu = document.getElementById("menuDropdown");
+  if(menu) menu.style.display = "none";
 }
 
 function waitClass(wait){ if(wait <= 15) return "low"; if(wait <= 35) return "med"; return "high"; }
@@ -1072,7 +1079,7 @@ function pickFoodStop(rides){
   }
 
   const rideRoute = rides
-    .filter(r => r.type !== "food" && r.is_open && r.lat && r.lng && !completedRides.includes(r.name))
+    .filter(r => r.type !== "food" && r.is_open && r.lat && r.lng && !completedRideKeys.includes(rideKey(r)))
     .map(r => ({...r, score: calculateRideScore(r)}))
     .sort((a,b) => b.score - a.score)
     .slice(0,6);
@@ -1533,6 +1540,8 @@ function updateTrustLayer(openRides){
   }
 
   const el = document.getElementById("trustInline");
+if(!el) return;
+
 el.style.opacity = 0;
 
 setTimeout(() => {
@@ -1663,7 +1672,7 @@ function renderMustRideList(rides){
   const groups = { Thrill:[], Kids:[], Shows:[], Food:[], Other:[] };
 
   rides
-    .filter(r => r && r.name && !completedRides.includes(r.name))
+    .filter(r => r && r.name && !completedRideKeys.includes(rideKey(r)))
     .sort((a,b) => popularityScore(b.name) - popularityScore(a.name))
     .forEach(r => {
       const category = groups[rideCategory(r.name)] ? rideCategory(r.name) : "Other";
