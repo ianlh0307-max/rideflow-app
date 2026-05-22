@@ -52,7 +52,6 @@ button{font-family:inherit;cursor:pointer}
 #app{display:flex;height:100vh}
 #sidebar{width:220px;background:var(--dark2);border-right:1px solid var(--cb);padding:18px 10px;display:flex;flex-direction:column}
 .logo{font-family:"Syne";font-weight:800;font-size:22px;margin:6px 10px 24px;color:white}
-<button id="mobileMenuBtn" onclick="toggleMobileMenu()">☰</button>
 .nav button{width:100%;text-align:left;background:none;border:0;color:var(--muted);padding:12px 14px;border-radius:12px;margin-bottom:6px;font-weight:700}
 .nav button.active,.nav button:hover{background:rgba(0,82,255,.15);color:white}
 #main{flex:1;display:flex;flex-direction:column;min-width:0}
@@ -61,6 +60,9 @@ button{font-family:inherit;cursor:pointer}
   padding:8px 24px 10px;
   background:linear-gradient(180deg, rgba(10,11,15,0.9), rgba(10,11,15,0));
   border-bottom:1px solid rgba(255,255,255,0.04);
+}
+#mobileMenuBtn{
+  display:none;
 }
 
 #trustInline{
@@ -356,10 +358,9 @@ button{font-family:inherit;cursor:pointer}
 }
 .launch{width:100%;margin-top:20px;padding:15px}
 @media(max-width:800px){
-
   body{
-  overflow-x:hidden;
-  overflow-y:auto;
+    overflow-x:hidden;
+    overflow-y:auto;
   }
 
   #app{
@@ -377,39 +378,39 @@ button{font-family:inherit;cursor:pointer}
     background:#0b0f17;
     padding:18px 20px;
   }
-#mobileMenuBtn{
-  display:block;
-  position:absolute;
-  right:20px;
-  top:22px;
-  background:none;
-  border:0;
-  color:white;
-  font-size:28px;
-  z-index:10000;
-}
 
-.nav{
-  display:none;
-}
+  #mobileMenuBtn{
+    display:block;
+    position:absolute;
+    right:20px;
+    top:22px;
+    background:none;
+    border:0;
+    color:white;
+    font-size:28px;
+    z-index:10000;
+  }
 
-.nav.mobile-open{
-  display:flex;
-  flex-direction:column;
-  margin-top:18px;
-  gap:10px;
-}
   .nav{
     display:none;
   }
 
+  .nav.mobile-open{
+    display:flex;
+    flex-direction:column;
+    margin-top:18px;
+    gap:10px;
+  }
+
   #content{
     overflow:visible;
+    width:100%;
   }
 
   .screen{
-  height:auto;
-  min-height:100vh;
+    height:auto;
+    min-height:100vh;
+    padding:14px;
   }
 
   #topbar{
@@ -457,7 +458,8 @@ button{font-family:inherit;cursor:pointer}
     grid-template-columns:1fr;
   }
 
-  .metric-card{
+  .metric-card,
+  .ride{
     width:100%;
     max-width:100%;
   }
@@ -465,11 +467,6 @@ button{font-family:inherit;cursor:pointer}
   .nav-main{
     font-size:28px;
     line-height:1.08;
-  }
-
-  .ride{
-    width:100%;
-    max-width:100%;
   }
 
   .ride-name{
@@ -626,6 +623,7 @@ button{font-family:inherit;cursor:pointer}
 <div id="app">
   <aside id="sidebar">
     <div class="logo">RideFlow</div>
+<button id="mobileMenuBtn" onclick="toggleMobileMenu()">☰</button>
     <div class="nav">
       <button class="active" onclick="showScreen('map',this)">Live Map</button>
       <button onclick="showScreen('warroom',this)">War Room</button>
