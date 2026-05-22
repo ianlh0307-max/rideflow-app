@@ -68,6 +68,9 @@ button{font-family:inherit;cursor:pointer}
   background:linear-gradient(180deg, rgba(10,11,15,0.9), rgba(10,11,15,0));
   border-bottom:1px solid rgba(255,255,255,0.04);
 }
+#topbar{
+  display:none;
+}
 #mobileMenuBtn{
   display:none;
 }
@@ -424,6 +427,11 @@ button{font-family:inherit;cursor:pointer}
     padding:14px;
   }
 
+  #walkScore{
+  white-space:nowrap;
+  display:inline-block;
+  }
+ 
   .grid,
   .cards{
     grid-template-columns:1fr;
@@ -939,14 +947,20 @@ function launchApp(){
     thrill: document.getElementById("thrillPref").value,
     walking: document.getElementById("walkingPref").value
   };
-userFoodPlan = document.getElementById("foodPref").value;
+
+  userFoodPlan = document.getElementById("foodPref").value;
+
   document.getElementById("onboarding").style.display = "none";
+
+  // 👇 ADD THIS
+  document.getElementById("topbar").style.display = "flex";
+
   document.getElementById("parkName").textContent = selectedPark;
   document.getElementById("settingsPark").textContent = selectedPark;
+
   fetchLiveWaitTimes();
   setInterval(fetchLiveWaitTimes, 300000);
 }
-
 function showScreen(name, btn){
   document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
   document.getElementById("screen-" + name).classList.remove("hidden");
