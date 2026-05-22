@@ -52,6 +52,7 @@ button{font-family:inherit;cursor:pointer}
 #app{display:flex;height:100vh}
 #sidebar{width:220px;background:var(--dark2);border-right:1px solid var(--cb);padding:18px 10px;display:flex;flex-direction:column}
 .logo{font-family:"Syne";font-weight:800;font-size:22px;margin:6px 10px 24px;color:white}
+<button id="mobileMenuBtn" onclick="toggleMobileMenu()">☰</button>
 .nav button{width:100%;text-align:left;background:none;border:0;color:var(--muted);padding:12px 14px;border-radius:12px;margin-bottom:6px;font-weight:700}
 .nav button.active,.nav button:hover{background:rgba(0,82,255,.15);color:white}
 #main{flex:1;display:flex;flex-direction:column;min-width:0}
@@ -376,18 +377,30 @@ button{font-family:inherit;cursor:pointer}
     background:#0b0f17;
     padding:18px 20px;
   }
+#mobileMenuBtn{
+  display:block;
+  position:absolute;
+  right:20px;
+  top:22px;
+  background:none;
+  border:0;
+  color:white;
+  font-size:28px;
+  z-index:10000;
+}
 
+.nav{
+  display:none;
+}
+
+.nav.mobile-open{
+  display:flex;
+  flex-direction:column;
+  margin-top:18px;
+  gap:10px;
+}
   .nav{
     display:none;
-  }
-
-  #sidebar::after{
-    content:"☰";
-    position:absolute;
-    right:22px;
-    top:24px;
-    font-size:26px;
-    color:white;
   }
 
   #content{
@@ -855,6 +868,9 @@ function generateInsiderTip(openRides){
   }
 
   return `${ride.name} is worth watching. If it drops by 10+ minutes, it becomes a strong move.`;
+}
+function toggleMobileMenu(){
+  document.querySelector(".nav").classList.toggle("mobile-open");
 }
 function updateAI(openRides){
   const best = openRides[0];
