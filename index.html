@@ -45,7 +45,14 @@ body{
 }
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--blue:#0052ff;--lime:#aeff00;--dark:#0a0b0f;--dark2:#111318;--dark3:#181c24;--mid:#2a3040;--text:#e8ecf4;--muted:#8892a4;--red:#ff3c3c;--yellow:#ffb800;--cb:rgba(255,255,255,.1)}
-body{background:var(--dark);color:var(--text);font-family:"DM Sans",sans-serif;height:100vh;overflow:hidden}
+body{
+  background:var(--dark);
+  color:var(--text);
+  font-family:"DM Sans",sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
 h1,h2,h3{font-family:"Syne",sans-serif}
 button{font-family:inherit;cursor:pointer}
 .hidden{display:none!important}
@@ -327,14 +334,7 @@ button{font-family:inherit;cursor:pointer}
   text-align:center;
   width:100%;
 }
-.park-grid button:last-child{
-  grid-column:span 2;
-  justify-content:center;
-  text-align:center;
-}
-  gap:14px;
-  margin-top:18px;
-}
+
 .park{
   background:linear-gradient(180deg, #181c24, #111318);
   border:1px solid rgba(255,255,255,.08);
@@ -526,7 +526,7 @@ button{font-family:inherit;cursor:pointer}
   <span class="park-emoji">🏰</span>
   <span class="park-name">Magic Kingdom</span>
 </button>
-      <button class="park" data-park="Epcot">
+      <button class="park" data-park="EPCOT">
   <span class="park-emoji">🌐</span>
   <span class="park-name">Epcot</span>
 </button>
