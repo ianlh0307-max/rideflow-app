@@ -391,9 +391,33 @@ button{font-family:inherit;cursor:pointer}
     z-index:10000;
   }
 
+ .nav{
+  display:flex;
+}
+
+@media(max-width:800px){
   .nav{
-    display:none;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    margin-top:0;
+
+    transition:
+      max-height .3s ease,
+      opacity .25s ease,
+      margin-top .25s ease;
   }
+
+  .nav.mobile-open{
+    max-height:260px;
+    opacity:1;
+    margin-top:18px;
+  }
+}
 
   .nav.mobile-open{
     display:flex;
@@ -868,7 +892,17 @@ function generateInsiderTip(openRides){
   return `${ride.name} is worth watching. If it drops by 10+ minutes, it becomes a strong move.`;
 }
 function toggleMobileMenu(){
-  document.querySelector(".nav").classList.toggle("mobile-open");
+  const nav = document.querySelector(".nav");
+  const btn = document.getElementById("mobileMenuBtn");
+
+  nav.classList.toggle("mobile-open");
+
+  // animate icon
+  if(nav.classList.contains("mobile-open")){
+    btn.textContent = "✕";
+  } else {
+    btn.textContent = "☰";
+  }
 }
 function updateAI(openRides){
   const best = openRides[0];
