@@ -8,6 +8,13 @@
 <title>RideFlow App</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  overflow-x:hidden;
+}
 .ride-marker{
   width:42px;
   height:42px;
@@ -347,8 +354,9 @@ button{font-family:inherit;cursor:pointer}
 }
 .launch{width:100%;margin-top:20px;padding:15px}
 @media(max-width:800px){
+
   body{
-    overflow:auto;
+    overflow-x:hidden;
   }
 
   #app{
@@ -360,14 +368,29 @@ button{font-family:inherit;cursor:pointer}
   #sidebar{
     width:100%;
     height:auto;
-    flex-direction:row;
     position:sticky;
     top:0;
-    z-index:5;
+    z-index:9999;
+    background:#0b0f17;
+    padding:18px 20px;
+  }
+
+  .nav{
+    display:none;
+  }
+
+  #sidebar::after{
+    content:"☰";
+    position:absolute;
+    right:22px;
+    top:24px;
+    font-size:26px;
+    color:white;
   }
 
   #content{
     overflow:visible;
+    width:100%;
   }
 
   .screen{
@@ -375,32 +398,69 @@ button{font-family:inherit;cursor:pointer}
     padding:14px;
   }
 
+  #topbar{
+    position:relative;
+    z-index:5;
+    padding:14px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  #trustBar{
+    padding:8px 14px 10px;
+  }
+
   .grid{
     grid-template-columns:1fr;
-    height:auto;
-  }
-
-  .map{
-    min-height:360px;
-  }
-
-  #liveParkMap{
-    min-height:360px!important;
+    width:100%;
+    gap:16px;
   }
 
   .card{
+    width:100%;
+    max-width:100%;
+    overflow:hidden;
     padding:16px;
     border-radius:18px;
   }
 
-  #topbar{
-    padding:0 14px;
-    gap:10px;
+  .map{
+    width:100%;
+    min-height:330px;
+    margin-bottom:16px;
+    position:relative;
+    z-index:1;
   }
 
-  .trust-inline,
-  #trustInline{
-    font-size:11px;
+  #liveParkMap{
+    height:330px!important;
+    min-height:330px!important;
+    width:100%!important;
+    border-radius:18px;
+  }
+
+  .metrics-grid{
+    grid-template-columns:1fr;
+  }
+
+  .metric-card{
+    width:100%;
+    max-width:100%;
+  }
+
+  .nav-main{
+    font-size:28px;
+    line-height:1.08;
+  }
+
+  .ride{
+    width:100%;
+    max-width:100%;
+  }
+
+  .ride-name{
+    min-width:0;
+    word-break:break-word;
   }
 }
 .question-step{
