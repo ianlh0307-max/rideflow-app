@@ -14,6 +14,7 @@
 
 body{
   overflow-x:hidden;
+  overflow-y:auto;
 }
 .ride-marker{
   width:42px;
@@ -356,7 +357,8 @@ button{font-family:inherit;cursor:pointer}
 @media(max-width:800px){
 
   body{
-    overflow-x:hidden;
+  overflow-x:hidden;
+  overflow-y:auto;
   }
 
   #app{
@@ -390,12 +392,11 @@ button{font-family:inherit;cursor:pointer}
 
   #content{
     overflow:visible;
-    width:100%;
   }
 
   .screen{
-    height:auto;
-    padding:14px;
+  height:auto;
+  min-height:100vh;
   }
 
   #topbar{
