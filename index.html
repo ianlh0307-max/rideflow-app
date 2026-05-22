@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RideFlow App</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+.ride-marker{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#111318;
+  border:2px solid #aeff00;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 0 18px rgba(174,255,0,.35);
+  font-size:20px;
+}
+.leaflet-overlay-pane svg{
+  width:auto!important;
+  height:auto!important;
+}
+.spike-alert{
+  background:rgba(255,184,0,.08);
+  border:1px solid rgba(255,184,0,.28);
+  box-shadow:0 0 18px rgba(255,184,0,.08);
+}
+.insider-tip{
+  margin-top:10px;
+  background:rgba(0,82,255,.10);
+  border:1px solid rgba(0,198,255,.26);
+  box-shadow:0 0 18px rgba(0,198,255,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--blue:#0052ff;--lime:#aeff00;--dark:#0a0b0f;--dark2:#111318;--dark3:#181c24;--mid:#2a3040;--text:#e8ecf4;--muted:#8892a4;--red:#ff3c3c;--yellow:#ffb800;--cb:rgba(255,255,255,.1)}
+body{background:var(--dark);color:var(--text);font-family:"DM Sans",sans-serif;height:100vh;overflow:hidden}
+h1,h2,h3{font-family:"Syne",sans-serif}
+button{font-family:inherit;cursor:pointer}
+.hidden{display:none!important}
+#app{display:flex;height:100vh}
+#sidebar{width:220px;background:var(--dark2);border-right:1px solid var(--cb);padding:18px 10px;display:flex;flex-direction:column}
+.logo{font-family:"Syne";font-weight:800;font-size:22px;margin:6px 10px 24px;color:white}
+.nav button{width:100%;text-align:left;background:none;border:0;color:var(--muted);padding:12px 14px;border-radius:12px;margin-bottom:6px;font-weight:700}
+.nav button.active,.nav button:hover{background:rgba(0,82,255,.15);color:white}
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+#topbar{height:64px;background:var(--dark2);border-bottom:1px solid var(--cb);display:flex;align-items:center;padding:0 24px;gap:16px}
+#trustBar{
+  padding:8px 24px 10px;
+  background:linear-gradient(180deg, rgba(10,11,15,0.9), rgba(10,11,15,0));
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+
+#trustInline{
+  font-size:12px;
+  color:#9fb0c9;
+  font-weight:700;
+  letter-spacing:.2px;
+}
+#trustInline{
+  transition:opacity .25s ease;
+}
+.park-title{font-weight:800;color:white}
+.live{margin-left:auto;background:rgba(174,255,0,.12);border:1px solid rgba(174,255,0,.25);color:var(--lime);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:800}
+.trust-inline{
+  font-size:12px;
+  color:#a8b3c7;
+  margin-left:12px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:260px;
+}
+.park{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:linear-gradient(180deg, #181c24, #111318);
+  border:1px solid rgba(255,255,255,.08);
+  padding:17px 16px;
+  border-radius:16px;
+  color:white;
+  text-align:left;
+  font-weight:900;
+  letter-spacing:.2px;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.park:hover{
+  transform:translateY(-1px);
+  border-color:rgba(174,255,0,.25);
+  box-shadow:0 0 18px rgba(174,255,0,.08);
+}
+
+.park-grid button:last-child{
+  justify-content:center;
+}
+
+.park-grid button:last-child .park-emoji{
+  margin-left:0;
+}
+
+.park-emoji{
+  font-size:20px;
+}
+
+.park-name{
+  font-weight:900;
+}
+.btn{
+  background:linear-gradient(90deg, #0052ff, #00c6ff);
+  border:0;
+  color:white;
+  padding:9px 14px;
+  border-radius:12px;
+  font-weight:800;
+
+  box-shadow:
+    0 0 12px rgba(0,82,255,.4),
+    0 0 28px rgba(0,198,255,.25);
+}
+#content{flex:1;overflow:auto}
+.screen{height:100%;padding:24px}
+.grid{display:grid;grid-template-columns:1.7fr .8fr;gap:18px;height:100%}
+.card{
+  background:linear-gradient(180deg, #111318 0%, #0d1016 100%);
+  border-radius:20px;
+  padding:20px;
+  border:1px solid rgba(255,255,255,0.06);
+
+  /* layered glow */
+  box-shadow:
+    0 0 0 1px rgba(0,82,255,0.15),
+    0 0 18px rgba(0,82,255,0.18),
+    0 0 40px rgba(0,82,255,0.08),
+    inset 0 0 20px rgba(255,255,255,0.02);
+}
+.nav-mode{
+  margin-bottom:16px;
+  padding:18px;
+  border-radius:20px;
+  background:linear-gradient(135deg, rgba(0,82,255,.18), rgba(174,255,0,.08));
+  border:1px solid rgba(174,255,0,.22);
+  box-shadow:0 0 24px rgba(0,82,255,.16);
+}
+
+.nav-label{
+  font-size:11px;
+  font-weight:900;
+  color:#8fa2ff;
+  letter-spacing:1.4px;
+  margin-bottom:8px;
+}
+
+.nav-main{
+  font-family:"Syne";
+  font-size:22px;
+  font-weight:900;
+}
+
+.nav-sub{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--muted);
+}
+.route-confidence{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.08);
+  font-size:12px;
+  color:#b8c7df;
+  font-weight:800;
+}
+.trust-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.trust-pill{
+  padding:11px 12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.08);
+  color:#cfd7e6;
+  font-size:12px;
+  font-weight:800;
+}
+.day-banner{
+  margin-top:16px;
+  padding:16px 18px;
+  border-radius:18px;
+  font-weight:900;
+  background:rgba(174,255,0,.08);
+  border:1px solid rgba(174,255,0,.22);
+  box-shadow:0 0 22px rgba(174,255,0,.08);
+}
+
+.day-banner.warn{
+  background:rgba(255,184,0,.08);
+  border-color:rgba(255,184,0,.28);
+  box-shadow:0 0 22px rgba(255,184,0,.08);
+}
+.food-banner{
+  margin-top:12px;
+  padding:14px 18px;
+  border-radius:18px;
+  font-weight:900;
+  background:rgba(0,224,255,.07);
+  border:1px solid rgba(0,224,255,.22);
+  box-shadow:0 0 22px rgba(0,224,255,.07);
+}
+
+.food-banner.warn{
+  background:rgba(255,184,0,.08);
+  border-color:rgba(255,184,0,.28);
+}
+.map{position:relative;background:var(--dark3);border-radius:18px;overflow:hidden;min-height:520px}
+.pin-label{font-size:11px;font-weight:800}
+.side-list{display:flex;flex-direction:column;gap:10px}
+#mustRideList{
+  margin-top:14px;
+}
+.ride{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--dark3);
+  border:1px solid var(--cb);
+  padding:12px;
+  border-radius:14px;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.ride:hover{
+  transform:translateY(-1px);
+  border-color:rgba(174,255,0,.22);
+  box-shadow:0 0 18px rgba(174,255,0,.08);
+}
+.rank{width:24px;color:var(--muted);font-weight:800}
+.ride-name{flex:1;font-weight:800}
+.wait{
+  font-family:"Syne";
+  font-weight:800;
+  letter-spacing:0.3px;
+}.med{color:var(--yellow)}.high{color:var(--red)}
+.next{background:rgba(174,255,0,.1);border:1px solid rgba(174,255,0,.25)}
+.small{font-size:12px;color:var(--muted);margin-top:4px}
+.cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:26px;
+  margin-top:18px;
+}
+.big{
+  font-size:40px;
+  font-family:"Syne";
+  font-weight:800;
+  color:#e8ecf4; /* soft white */
+  letter-spacing:-0.5px;
+}
+.bar{
+  width:100%;
+  height:8px;
+  background:rgba(255,255,255,0.08);
+  border-radius:999px;
+  overflow:hidden;
+  margin:6px 0 14px;
+}
+
+.bar div{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg, #aeff00, #5bffb7);
+  border-radius:999px;
+  transition:width .4s ease;
+}
+.metric-accent{
+  color:var(--lime);
+  font-size:14px;
+  font-weight:700;
+  margin-left:6px;
+}
+.metric-gradient{
+  background:linear-gradient(90deg, #aeff00 0%, #5bffb7 40%, #00e0ff 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.metric-accent{
+  font-size:14px;
+  margin-left:4px;
+}
+.notice{font-size:12px;color:var(--muted);margin-top:12px}
+#onboarding{position:fixed;inset:0;background:var(--dark);z-index:10;display:flex;align-items:center;justify-content:center;padding:20px}
+.ob{background:var(--dark2);border:1px solid var(--cb);border-radius:24px;padding:34px;max-width:560px;width:100%}
+.ob h1{font-size:30px;margin-bottom:8px}
+.ob p{color:var(--muted);margin-bottom:20px}
+.park-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:18px;
+}
+.park-grid button:last-child{
+  grid-column:1 / -1; /* full width */
+  justify-content:center;
+}
+
+.park-grid button:last-child .park-name{
+  text-align:center;
+  width:100%;
+}
+.park-grid button:last-child{
+  grid-column:span 2;
+  justify-content:center;
+  text-align:center;
+}
+  gap:14px;
+  margin-top:18px;
+}
+.park{
+  background:linear-gradient(180deg, #181c24, #111318);
+  border:1px solid rgba(255,255,255,.08);
+  padding:17px 16px;
+  border-radius:16px;
+  color:white;
+  text-align:left;
+  font-weight:900;
+  letter-spacing:.2px;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.park:hover{
+  transform:translateY(-1px);
+  border-color:rgba(174,255,0,.25);
+  box-shadow:0 0 18px rgba(174,255,0,.08);
+}
+.park.selected{
+  border-color:rgba(174,255,0,.55);
+  box-shadow:0 0 22px rgba(174,255,0,.14);
+  background:linear-gradient(135deg, rgba(0,82,255,.22), rgba(174,255,0,.08));
+}
+.launch{width:100%;margin-top:20px;padding:15px}
+@media(max-width:800px){
+  body{
+    overflow:auto;
+  }
+
+  #app{
+    display:block;
+    height:auto;
+    min-height:100vh;
+  }
+
+  #sidebar{
+    width:100%;
+    height:auto;
+    flex-direction:row;
+    position:sticky;
+    top:0;
+    z-index:5;
+  }
+
+  #content{
+    overflow:visible;
+  }
+
+  .screen{
+    height:auto;
+    padding:14px;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+    height:auto;
+  }
+
+  .map{
+    min-height:360px;
+  }
+
+  #liveParkMap{
+    min-height:360px!important;
+  }
+
+  .card{
+    padding:16px;
+    border-radius:18px;
+  }
+
+  #topbar{
+    padding:0 14px;
+    gap:10px;
+  }
+
+  .trust-inline,
+  #trustInline{
+    font-size:11px;
+  }
+}
+.question-step{
+  animation:fadeIn .25s ease;
+}
+.complete-btn{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:1px solid rgba(174,255,0,.45);
+  background:rgba(174,255,0,.08);
+  color:#b8ff4a;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.complete-btn:hover{
+  background:rgba(174,255,0,.18);
+  box-shadow:0 0 12px rgba(174,255,0,.25);
+}
+.question-step h1{
+  font-size:28px;
+  margin-bottom:10px;
+}
+.question-step input[type="range"]{
+  width:100%;
+  margin:18px 0;
+  accent-color:var(--lime);
+}
+.question-step .park{
+  width:100%;
+  margin-top:12px;
+  font-weight:800;
+  font-size:15px;
+  line-height:1.25;
+}
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+</style>
+</head>
+<body>
+
+<div id="onboarding">
+  <div class="ob">
+    <h1>Where are you heading?</h1>
+<p>Choose your park so RideFlow can build a live strategy around wait times, walking, and food stops.</p>
+    <div class="park-grid">
+      <button class="park" data-park="Magic Kingdom">
+  <span class="park-emoji">🏰</span>
+  <span class="park-name">Magic Kingdom</span>
+</button>
+      <button class="park" data-park="Epcot">
+  <span class="park-emoji">🌐</span>
+  <span class="park-name">Epcot</span>
+</button>
+      <button class="park" data-park="Hollywood Studios">
+  <span class="park-emoji">🎬</span>
+  <span class="park-name">Hollywood Studios</span>
+</button>
+      <button class="park" data-park="Animal Kingdom">
+  <span class="park-emoji">🦁</span>
+  <span class="park-name">Animal Kingdom</span>
+</button>
+      <button class="park" data-park="Disneyland">
+  <span class="park-emoji">🏰</span>
+  <span class="park-name">Disneyland</span>
+</button>
+      <button class="park" data-park="Cedar Point">
+  <span class="park-emoji">🎢</span>
+  <span class="park-name">Cedar Point</span>
+</button>
+      <button class="park" data-park="Kings Island">
+  <span class="park-emoji">👑</span>
+  <span class="park-name">Kings Island</span>
+</button>
+    </div>
+    <button class="btn launch" onclick="showRouteQuestions()">Build My Route →</button><div id="routeQuestions" class="hidden" style="margin-top:22px;">
+  <div id="q1" class="question-step">
+    <h1>How many people?</h1>
+    <p class="small">Group size: <span id="groupSizeVal">4</span></p>
+    <input type="range" min="1" max="12" value="4" oninput="groupSizeVal.textContent=this.value">
+    <button class="btn launch" onclick="nextQuestion(1,2)">Continue →</button>
+  </div>
+
+  <div id="q2" class="question-step hidden">
+    <h1>How long are you staying?</h1>
+    <p class="small"><span id="parkTimeVal">6</span> hours in the park</p>
+    <input type="range" min="2" max="12" value="6" oninput="parkTimeVal.textContent=this.value">
+    <button class="btn launch" onclick="nextQuestion(2,3)">Continue →</button>
+  </div>
+
+  <div id="q3" class="question-step hidden">
+    <h1>What’s your thrill level?</h1>
+    <button class="park selected" onclick="selectOption(this,'thrillPref','balanced')">
+  ⚡ Balanced
+  <div class="small">Mix of thrills and classics</div>
+</button>
+
+<button class="park" onclick="selectOption(this,'thrillPref','easy')">
+  😊 Family friendly
+  <div class="small">Low intensity, kid-friendly rides</div>
+</button>
+
+<button class="park" onclick="selectOption(this,'thrillPref','extreme')">
+  🔥 Big thrills
+  <div class="small">Roller coasters and high-adrenaline rides</div>
+</button>
+    <input type="hidden" id="thrillPref" value="balanced">
+    <button class="btn launch" onclick="nextQuestion(3,4)">Continue →</button>
+  </div>
+
+  <div id="q4" class="question-step hidden">
+    <h1>How should RideFlow optimize?</h1>
+    <button class="park selected" onclick="selectOption(this,'walkingPref','balanced')">
+  🎯 Balanced route
+  <div class="small">Smart mix of walking + wait times</div>
+</button>
+
+<button class="park" onclick="selectOption(this,'walkingPref','low')">
+  👟 Minimize walking
+  <div class="small">Stay in tight zones, less movement</div>
+</button>
+
+<button class="park" onclick="selectOption(this,'walkingPref','max')">
+  🚀 Max rides
+  <div class="small">Cover more ground to ride more</div>
+</button>
+    <input type="hidden" id="walkingPref" value="balanced">
+    <button class="btn launch" onclick="nextQuestion(4,5)">Continue →</button>
+  </div>
+
+  <div id="q5" class="question-step hidden">
+  <h1>Food plan?</h1>
+
+  <button class="park selected" onclick="selectOption(this,'foodPref','eat-late')">🍔 Eat later</button>
+  <button class="park" onclick="selectOption(this,'foodPref','eat-early')">🌮 Eat early</button>
+  <button class="park" onclick="selectOption(this,'foodPref','skip-food')">🚫 Don’t eat in the park</button>
+
+  <input type="hidden" id="foodPref" value="eat-late">
+
+  <button class="btn launch" onclick="launchApp()">Generate My Route →</button>
+</div>
+</div>
+</div>
+</div>
+<div id="app">
+  <aside id="sidebar">
+    <div class="logo">RideFlow</div>
+    <div class="nav">
+      <button class="active" onclick="showScreen('map',this)">Live Map</button>
+      <button onclick="showScreen('warroom',this)">War Room</button>
+      <button onclick="showScreen('settings',this)">Settings</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div id="topbar">
+      <div>
+        <div class="park-title" id="parkName">Magic Kingdom</div>
+        <div class="small" id="lastUpdated">Waiting for live data...</div>
+      </div>
+      <div class="live">LIVE</div>
+      <button class="btn" onclick="fetchLiveWaitTimes()">Refresh</button>
+    </div>
+<div id="trustBar">
+  <div id="trustInline">Analyzing route...</div>
+</div>
+    <div id="content">
+      <section id="screen-map" class="screen">
+        <div class="grid">
+          <div class="map card">
+            <div id="liveParkMap" style="height:100%;min-height:520px;border-radius:18px;"></div>
+          </div>
+
+          <div class="card">
+<div class="nav-mode">
+  <div class="nav-label">NAVIGATION MODE</div>
+  <div class="nav-main" id="navMain">Calculating best move...</div>
+  <div class="nav-sub" id="navSub">RideFlow is building your route.</div>
+<div class="route-confidence" id="routeConfidence">
+  Optimized for low waits + smart walking.
+</div>
+</div>
+            <h2>Go Now</h2>
+            <div class="ride next" id="goNowCard" style="margin:14px 0">
+  <button id="goNowCheck" onclick="" style="background:none;border:0;color:var(--lime);font-size:18px;">☐</button>
+  <div>⚡</div>
+  <div class="ride-name" id="nextRide">Loading...</div>
+  <div class="wait low" id="nextWait">--</div>
+</div>
+
+            <h3>Optimized Route</h3>
+<button class="btn" onclick="reevaluateRoute()" style="width:100%;margin:10px 0;">Reevaluate Route</button>
+            <div class="side-list" id="rideList"></div>
+
+<br>
+<h3>Must-Ride Priorities</h3>
+<div id="mustRideList" class="side-list"></div>
+            <div class="notice">Live data from ThemeParks.wiki</div>
+          </div>
+        </div>
+      </section>
+
+ <section id="screen-warroom" class="screen hidden">
+  <h1>Your Park Intelligence Suite</h1>
+  <p class="small">Live optimization tools powered by current ride data.</p>
+
+<div id="dayStatusBanner" class="day-banner">
+  Analyzing your day...
+</div>
+<div id="foodTimingBanner" class="food-banner">
+  🍔 Calculating best meal window...
+</div>
+
+<br>
+
+    <div class="card" style="margin-bottom:26px;">
+  <h3 style="margin-bottom:10px;">🏆 Session Savings</h3>
+
+  <div class="big" id="sessionTime">--</div>
+  <p class="small">estimated hours saved today</p>
+
+  <br>
+
+  <h3>Efficiency Score</h3>
+
+  <p class="small">Route Quality</p>
+<div class="big" id="routeQuality">--</div>
+<div class="bar"><div id="barRoute"></div></div>
+
+  <p class="small">Line Avoidance</p>
+<div class="big" id="crowdAvoid">--</div>
+<div class="bar"><div id="barAvoid"></div></div>
+
+  <p class="small">Walk Efficiency</p>
+<div class="big" id="walkEff">--</div>
+<div class="bar"><div id="barWalk"></div></div>
+</div>
+
+  <div class="cards">
+    <div class="card">
+      <h3>🛰️ Real-Time Route Optimization</h3>
+      <div class="big" id="routeMove">--</div>
+      <p class="small" id="routeText">Waiting for live data...</p>
+    </div>
+
+    <div class="card">
+      <h3>📈 Predictive Wait Forecasting</h3>
+      <div class="big" id="forecastWait">--</div>
+      <p class="small" id="forecastText">Analyzing wait movement...</p>
+    </div>
+
+    <div class="card">
+      <h3>👟 Walking Minimization</h3>
+      <div class="big" id="walkScore">--</div>
+      <p class="small" id="walkText">Clustering nearby low-wait rides...</p>
+    </div>
+
+    <div class="card">
+  <h3>🧠 AI Recommendations</h3>
+
+  <div class="ride next" style="margin:14px 0;">
+    <div class="ride-name">NEXT MOVE</div>
+    <div class="small" id="aiNext">Waiting for live data...</div>
+  </div>
+
+  <div class="ride" style="margin-bottom:10px;">
+    <div class="ride-name">CROWD ALERT</div>
+    <div class="small" id="aiAlert">Analyzing crowds...</div>
+  </div>
+
+<div class="ride spike-alert" style="margin-bottom:10px;">
+  <div class="ride-name">LINE SPIKE ALERT</div>
+  <div class="small" id="spikeAlert">Watching wait trends...</div>
+</div>
+
+  <div class="ride">
+    <div class="ride-name">AT THIS PACE</div>
+    <div class="small" id="aiProjection">Calculating day projection...</div>
+  </div>
+<div class="ride insider-tip">
+  <div class="ride-name">INSIDER TIP</div>
+  <div class="small" id="insiderTip">Looking for smart park tips...</div>
+</div>
+</div>
+</section>
+
+      <section id="screen-settings" class="screen hidden">
+        <h1>Settings</h1>
+        <br>
+        <div class="card">
+          <h3>Current Park</h3>
+          <p class="small" id="settingsPark">Magic Kingdom</p>
+          <br>
+          <button class="btn" onclick="location.reload()">Change Park</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+let routeLine;
+let selectedPark = "Magic Kingdom";
+let parkMap;
+let rideMarkers = [];
+let userPrefs = { groupSize: 4, parkHours: 6, thrill: "balanced", walking: "balanced" };
+let completedRides = [];
+let completedRideKeys = [];
+let latestRides = [];
+let frozenRoute = [];
+let routeGlowLines = [];
+let previousWaits = {};
+let mustRideNames = [];
+let selectedFoodName = null;
+let userFoodPlan = "eat-late";
+
+const PARK_ENTITY_IDS = {
+  "Magic Kingdom": "75ea578a-adc8-4116-a54d-dccb60765ef9",
+  "EPCOT": "47f90d2c-e191-4239-a466-5892ef59a88b",
+  "Hollywood Studios": "288747d1-8b4f-4a64-867e-ea7c9b27bad8",
+  "Animal Kingdom": "1c84a229-8862-4648-9c71-378ddd2c7693",
+  "Disneyland": "7340550b-c14d-4def-80bb-acdb51d49a66",
+  "Cedar Point": "c8299e1a-0098-4677-8ead-dd0da204f8dc",
+  "Kings Island": "694e1f6e-d6a2-4c86-9749-5da1a9cb8924"
+};
+
+const PARK_CENTERS = {
+  "Magic Kingdom":[28.4177,-81.5812],
+  "EPCOT":[28.3747,-81.5494],
+  "Hollywood Studios":[28.3575,-81.5583],
+  "Animal Kingdom":[28.3557,-81.5900],
+  "Disneyland":[33.8121,-117.9190],
+  "Cedar Point":[41.4822,-82.6835],
+  "Kings Island":[39.3430,-84.2675]
+};
+
+document.querySelectorAll(".park").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".park").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    if(btn.dataset.park) selectedPark = btn.dataset.park;
+  });
+});
+function detectLineSpike(openRides){
+  const rising = openRides
+    .filter(r => r.type !== "food")
+    .map(r => {
+      const oldWait = previousWaits[r.name];
+      const currentWait = r.wait_time;
+
+      if(oldWait === undefined) return null;
+
+      const jump = currentWait - oldWait;
+
+      return {
+        ...r,
+        jump,
+        spikeRisk: jump * 3 + currentWait * 0.35 + calculateRideScore(r) * 0.25
+      };
+    })
+    .filter(r => r && r.jump >= 5)
+    .sort((a,b) => b.spikeRisk - a.spikeRisk);
+
+  return rising[0] || null;
+}
+function generateInsiderTip(openRides){
+  const ride = openRides.find(r => r.type !== "food" && r.wait_time >= 35) || openRides[0];
+
+  if(!ride) return "Keep following your optimized route.";
+
+  const name = ride.name.toLowerCase();
+
+  if(name.includes("mountain") || name.includes("coaster")){
+    return `${ride.name} may move faster than it looks because coaster lines usually load continuously.`;
+  }
+
+  if(name.includes("pirates") || name.includes("small world") || name.includes("haunted")){
+    return `${ride.name} is a strong pick because high-capacity rides often absorb crowds well.`;
+  }
+
+  if(name.includes("splash") || name.includes("water")){
+    return `${ride.name} often gets busier when temperatures rise, so earlier is usually smarter.`;
+  }
+
+  if(ride.wait_time <= 15){
+    return `${ride.name} is a low-wait window right now — good time to grab it.`;
+  }
+
+  return `${ride.name} is worth watching. If it drops by 10+ minutes, it becomes a strong move.`;
+}
+function updateAI(openRides){
+  const best = openRides[0];
+  const worst = [...openRides].sort((a,b)=>b.wait_time-a.wait_time)[0];
+  if(!best) return;
+
+  const droppedRide = latestRides.find(r => {
+    const oldWait = previousWaits[r.name];
+    return oldWait && oldWait >= 45 && oldWait - r.wait_time >= 20;
+  });
+
+  const avgRouteWait = openRides.slice(0,6)
+    .reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, openRides.slice(0,6).length);
+
+  const avgRideTime = avgRouteWait + 12;
+  const projectedRides = Math.max(1, Math.floor((userPrefs.parkHours * 60) / avgRideTime));
+
+  document.getElementById("aiNext").innerHTML =
+    `<span class="metric-gradient">Head to ${best.name}</span><br>${best.wait_time} min wait`;
+
+  document.getElementById("aiAlert").innerHTML = droppedRide
+    ? `<span style="color:#ff3c3c;font-weight:800;">DROP ALERT:</span> ${droppedRide.name} fell from ${previousWaits[droppedRide.name]} to ${droppedRide.wait_time} min`
+    : `<span style="color:#ff3c3c;font-weight:800;">CROWD ALERT:</span> Avoid ${worst.name} at ${worst.wait_time} min`;
+
+  document.getElementById("aiProjection").innerHTML =
+    `<span class="metric-gradient">${projectedRides} rides</span> at your current pace`;
+const spikeRide = detectLineSpike(openRides);
+
+document.getElementById("spikeAlert").innerHTML = spikeRide
+  ? `<span style="color:#ffd36a;font-weight:900;">🔥 Ride ${spikeRide.name} now</span><br>Wait jumped ${spikeRide.jump} min and may keep climbing.`
+  : `<span style="color:#ffd36a;font-weight:900;">No spike risk detected</span><br>Current route looks stable.`;
+document.getElementById("insiderTip").innerHTML =
+  `<span style="color:#00e0ff;font-weight:900;">Smart tip:</span><br>${generateInsiderTip(openRides)}`;
+}
+function reevaluateRoute(){
+  frozenRoute = buildOptimizedRoute(latestRides);
+
+  const btn = document.querySelector('button[onclick="reevaluateRoute()"]');
+  if(btn){
+    btn.textContent = "Route Updated ✓";
+    setTimeout(() => btn.textContent = "Reevaluate Route", 900);
+  }
+
+  refreshMapMarkers();
+  updateUI(latestRides);
+  drawOptimizedRoute(frozenRoute.slice(0,6));
+}
+
+function rideKey(ride){
+  return ride.id || ride.name;
+}
+function completeRide(key){
+  if(!completedRideKeys.includes(key)){
+    completedRideKeys.push(key);
+  }
+
+  const cards = [...document.querySelectorAll(".ride")]
+    .filter(card => card.dataset.ride === key);
+
+  cards.forEach(card => {
+    card.style.transition = "all .35s ease";
+    card.style.transform = "translateX(110%) scale(.96)";
+    card.style.opacity = "0";
+    card.style.filter = "blur(2px)";
+  });
+
+  setTimeout(() => {
+    frozenRoute = buildOptimizedRoute(latestRides);
+    refreshMapMarkers();
+    updateUI(latestRides);
+    drawOptimizedRoute(frozenRoute.slice(0,6));
+  }, 350);
+}
+function showRouteQuestions(){ 
+  document.getElementById("routeQuestions").classList.remove("hidden");
+
+  // hide everything except questions
+  document.querySelector(".park-grid").style.display = "none";
+  document.querySelector("#onboarding h1").style.display = "none";
+  document.querySelector("#onboarding p").style.display = "none";
+
+  // hide the button itself
+  document.querySelector(".launch").style.display = "none";
+}
+function nextQuestion(current,next){
+  document.getElementById("q"+current).classList.add("hidden");
+  document.getElementById("q"+next).classList.remove("hidden");
+}
+function selectOption(button,inputId,value){
+  button.parentElement.querySelectorAll(".park").forEach(b => b.classList.remove("selected"));
+  button.classList.add("selected");
+  document.getElementById(inputId).value = value;
+}
+
+function launchApp(){
+  userPrefs = {
+    groupSize: Number(document.getElementById("groupSizeVal").textContent),
+    parkHours: Number(document.getElementById("parkTimeVal").textContent),
+    thrill: document.getElementById("thrillPref").value,
+    walking: document.getElementById("walkingPref").value
+  };
+userFoodPlan = document.getElementById("foodPref").value;
+  document.getElementById("onboarding").style.display = "none";
+  document.getElementById("parkName").textContent = selectedPark;
+  document.getElementById("settingsPark").textContent = selectedPark;
+  fetchLiveWaitTimes();
+  setInterval(fetchLiveWaitTimes, 300000);
+}
+
+function showScreen(name, btn){
+  document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+  document.getElementById("screen-" + name).classList.remove("hidden");
+  document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+function waitClass(wait){ if(wait <= 15) return "low"; if(wait <= 35) return "med"; return "high"; }
+
+function rideIcon(name){
+  const n = name.toLowerCase();
+  if(n.includes("mountain")) return "🚀";
+  if(n.includes("pirates")) return "⚓";
+  if(n.includes("haunted") || n.includes("ghost")) return "👻";
+  if(n.includes("jungle")) return "🚢";
+  if(n.includes("dumbo")) return "🎪";
+  if(n.includes("railroad") || n.includes("train")) return "🚂";
+  if(n.includes("small world")) return "🌍";
+  if(n.includes("speedway") || n.includes("race")) return "🏎️";
+  if(n.includes("buzz") || n.includes("space") || n.includes("flight of fear")) return "🛸";
+  if(n.includes("carousel")) return "🎠";
+  if(n.includes("princess")) return "👑";
+  if(n.includes("tower")) return "🏢";
+  if(n.includes("pirate's")) return "🏴‍☠️";
+  if(n.includes("castle")) return "🏰";
+  if(n.includes("star") || n.includes("millennium")) return "💫";
+  if(n.includes("toy") || n.includes("slinky")) return "🧸";
+  if(n.includes("mickey") || n.includes("walt")) return "🐭";
+  if(n.includes("snoopy") || n.includes("peanut") || n.includes("woodstock") || n.includes("charlie brown")) return "🥜";
+  if(n.includes("bat")) return "🦇";
+  if(n.includes("diamondback")) return "🐍";
+  if(n.includes("eiffel tower")) return "🗼";
+  return "🎢";
+}
+function estimateFoodDelay(restaurant){
+  const hour = new Date().getHours();
+  const name = restaurant.name.toLowerCase();
+
+  let delay = 10;
+
+  if(hour >= 11 && hour <= 13) delay += 12;
+  if(hour >= 17 && hour <= 19) delay += 15;
+
+  if(name.includes("grill") || name.includes("barbecue") || name.includes("pizza")) delay += 8;
+  if(name.includes("cafe") || name.includes("market") || name.includes("snack")) delay += 3;
+  if(name.includes("ice cream") || name.includes("funnel") || name.includes("popcorn")) delay -= 5;
+  if(name.includes("stand") || name.includes("cart")) delay -= 7;
+
+  const variation = restaurant.name.length % 4;
+  delay += variation * 3;
+
+  return Math.round(Math.max(5, delay) / 5) * 5;
+}
+function calculateRideScore(ride){
+  const wait = Number(ride.wait_time || 0);
+  const name = ride.name.toLowerCase();
+  let score = 100 - wait * 0.6; // wait time matters less now
+
+  const isThrill = name.includes("mountain") || name.includes("coaster") || name.includes("thunder");
+  const isFamily = name.includes("dumbo") || name.includes("small world") || name.includes("carousel") || name.includes("princess");
+  const isClassic = name.includes("pirates") || name.includes("haunted") || name.includes("jungle");
+
+  if(userPrefs.thrill === "extreme" && isThrill) score += 50;
+  if(userPrefs.thrill === "easy" && isFamily) score += 50;
+  if(userPrefs.thrill === "balanced" && (isClassic || isFamily)) score += 20;
+
+  if(userPrefs.groupSize >= 6 && isFamily) score += 12;
+  if(wait >= 60) score -= 20;
+  if(mustRideNames.includes(ride.name)) score += 28;
+
+  return Math.max(1, Math.round(score));
+}
+function distanceBetween(a,b){
+  if(!a.lat || !a.lng || !b.lat || !b.lng) return 999;
+  const dx = a.lat - b.lat;
+  const dy = a.lng - b.lng;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+function toggleMustRide(name){
+  if(mustRideNames.includes(name)){
+    mustRideNames = mustRideNames.filter(r => r !== name);
+  } else {
+    mustRideNames.push(name);
+  }
+
+  frozenRoute = buildOptimizedRoute(latestRides);
+  updateUI(latestRides);
+  drawOptimizedRoute(frozenRoute.slice(0,6));
+}
+function pickFoodStop(rides){
+  if(userFoodPlan === "skip-food") return null;
+
+  const restaurants = rides.filter(r =>
+  r.type === "food" &&
+  r.is_open &&
+  r.lat &&
+  r.lng &&
+  !completedRideKeys.includes(rideKey(r)) &&
+  !(userPrefs.thrill === "easy" && r.servesAlcohol)
+);
+
+  if(!restaurants.length) return null;
+
+  if(selectedFoodName){
+    return restaurants.find(r => r.name === selectedFoodName) || null;
+  }
+
+  const rideRoute = rides
+    .filter(r => r.type !== "food" && r.is_open && r.lat && r.lng && !completedRides.includes(r.name))
+    .map(r => ({...r, score: calculateRideScore(r)}))
+    .sort((a,b) => b.score - a.score)
+    .slice(0,6);
+
+  return restaurants
+    .map(food => {
+      const nearbyBonus = rideRoute.reduce((best, ride) => {
+        const dist = distanceBetween(food, ride);
+        return Math.max(best, 40 - dist * 120000);
+      }, 0);
+
+      return {
+        ...food,
+        score: 80 - estimateFoodDelay(food) * 0.8 + nearbyBonus
+      };
+    })
+    .sort((a,b) => b.score - a.score)[0];
+}
+function buildOptimizedRoute(rides){
+  let candidates = rides
+  .filter(r => r.type !== "food" && r.is_open && r.lat && r.lng && !completedRideKeys.includes(rideKey(r)))
+  .map(r => ({
+    ...r,
+    score: calculateRideScore(r) + Math.random() * 6
+  }));
+
+  if(!candidates.length) return [];
+
+  const walkPenalty =
+    userPrefs.walking === "low" ? 26000 :
+    userPrefs.walking === "max" ? 8000 :
+    15000;
+
+  const start = {
+    lat:PARK_CENTERS[selectedPark][0],
+    lng:PARK_CENTERS[selectedPark][1]
+  };
+
+  candidates = candidates
+    .map(r => ({
+      ...r,
+      routeScore:r.score - distanceBetween(start,r) * walkPenalty
+    }))
+    .sort((a,b) => b.routeScore - a.routeScore);
+
+  const route = [candidates.shift()];
+
+  while(route.length < 8 && candidates.length){
+    const current = route[route.length - 1];
+
+    candidates = candidates
+      .map(r => ({
+        ...r,
+        routeScore:
+          r.score
+          + (mustRideNames.includes(r.name) ? 35 : 0)
+          - distanceBetween(current,r) * walkPenalty
+      }))
+      .sort((a,b) => b.routeScore - a.routeScore);
+
+    route.push(candidates.shift());
+  }
+
+  const foodStop = pickFoodStop(rides);
+
+  if(foodStop){
+    const insertIndex = userFoodPlan === "eat-early" ? 2 : 4;
+    route.splice(Math.min(insertIndex, route.length), 0, {
+      ...foodStop,
+      score:90,
+      food_time:userFoodPlan === "eat-early" ? "Early meal stop" : "Later meal stop"
+    });
+  }
+
+  return route;
+}
+
+
+function calculateTimeSaved(openRides){
+  const completedCount = completedRides.length;
+  const remainingCount = openRides.length;
+
+  if(!latestRides.length) return "0.0";
+
+  const allOpen = latestRides.filter(r => r.is_open && r.type !== "food");
+  const avgParkWait = allOpen.reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, allOpen.length);
+
+  const routeAvgWait = openRides
+    .filter(r => r.type !== "food")
+    .slice(0,8)
+    .reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, openRides.filter(r => r.type !== "food").slice(0,8).length);
+
+  const completedSavings = completedCount * 12;
+  const futureSavings = Math.max(0, (avgParkWait - routeAvgWait) * Math.min(userPrefs.parkHours, 6) * 1.4);
+
+  return Math.max(0.3, (completedSavings + futureSavings) / 60).toFixed(1);
+}
+
+function calculateRouteQuality(openRides){
+  if(!openRides.length) return 0;
+  return Math.min(100, Math.round(openRides.slice(0,10).reduce((sum,r)=>sum+r.score,0) / Math.max(1, openRides.slice(0,10).length)));
+}
+
+function calculateLineAvoidance(openRides){
+  if(!openRides.length) return 0;
+  const high = openRides.filter(r => r.wait_time >= 45).length;
+  return Math.max(0, Math.round(100 - (high / openRides.length) * 100));
+}
+
+function calculateWalkEfficiency(){
+  if(userPrefs.walking === "low") return 95;
+  if(userPrefs.walking === "balanced") return 86;
+  return 75;
+}
+function calculateTimeSaved(openRides){
+  if(!openRides.length) return "0.0";
+
+  const allAvgWait = latestRides
+    .filter(r => r.name && !completedRideKeys.includes(rideKey(r)))
+    .reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, latestRides.filter(r => r.is_open).length);
+
+  const routeAvgWait = openRides
+    .slice(0,8)
+    .reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, openRides.slice(0,8).length);
+
+  const savedMinutes = Math.max(0, (allAvgWait - routeAvgWait) * userPrefs.parkHours * 1.8);
+
+  return Math.max(0.3, savedMinutes / 60).toFixed(1);
+}
+
+function calculateRouteQuality(openRides){
+  if(!openRides.length) return 0;
+
+  const avgScore = openRides
+    .slice(0,8)
+    .reduce((sum,r)=>sum+r.score,0) / Math.max(1, openRides.slice(0,8).length);
+
+  return Math.min(99, Math.max(55, Math.round(avgScore)));
+}
+
+function calculateLineAvoidance(openRides){
+  if(!openRides.length) return 0;
+
+  const badWaits = openRides.filter(r => r.wait_time >= 45).length;
+  const score = 100 - badWaits * 12;
+
+  return Math.max(50, Math.min(98, score));
+}
+
+function calculateWalkEfficiency(openRides){
+  if(!openRides.length) return 0;
+
+  let base = 82;
+
+  if(userPrefs.walking === "low") base += 12;
+  if(userPrefs.walking === "balanced") base += 5;
+  if(userPrefs.walking === "max") base -= 5;
+
+  return Math.max(55, Math.min(98, base));
+}
+function updateMetrics(openRides){
+  const time = calculateTimeSaved(openRides);
+  const route = calculateRouteQuality(openRides);
+  const avoid = calculateLineAvoidance(openRides);
+  const walk = calculateWalkEfficiency(openRides);
+
+  document.getElementById("sessionTime").innerHTML =
+    `<span class="metric-gradient">${time}</span><span class="metric-accent metric-gradient">h</span>`;
+
+  document.getElementById("routeQuality").innerHTML =
+    `<span class="metric-gradient">${route}</span><span class="metric-accent metric-gradient">%</span>`;
+
+  document.getElementById("crowdAvoid").innerHTML =
+    `<span class="metric-gradient">${avoid}</span><span class="metric-accent metric-gradient">%</span>`;
+
+  document.getElementById("walkEff").innerHTML =
+    `<span class="metric-gradient">${walk}</span><span class="metric-accent metric-gradient">%</span>`;
+
+  // update bars
+  document.getElementById("barRoute").style.width = route + "%";
+  document.getElementById("barAvoid").style.width = avoid + "%";
+  document.getElementById("barWalk").style.width = walk + "%";
+updateDayStatus(openRides);
+updateFoodTiming();
+}
+function updateFoodTiming(){
+  const banner = document.getElementById("foodTimingBanner");
+  if(!banner) return;
+
+  if(userFoodPlan === "skip-food"){
+    banner.className = "food-banner";
+    banner.innerHTML = "🚫 Food skipped — route focused fully on rides.";
+    return;
+  }
+
+  const now = new Date();
+  const hour = now.getHours();
+
+  const currentFood = frozenRoute.find(r => r.type === "food");
+  const waitEstimate = currentFood ? estimateFoodDelay(currentFood) : 25;
+
+  let bestHour;
+
+  if(hour < 11) bestHour = 11;
+  else if(hour >= 11 && hour <= 13) bestHour = 14;
+  else if(hour < 17) bestHour = 16;
+  else if(hour >= 17 && hour <= 19) bestHour = 20;
+  else bestHour = hour;
+
+  const bestTime = new Date();
+  bestTime.setHours(bestHour, 40, 0, 0);
+
+  const timeText = bestTime.toLocaleTimeString([], {
+    hour:"numeric",
+    minute:"2-digit"
+  });
+
+  const peakRush = (hour >= 11 && hour <= 13) || (hour >= 17 && hour <= 19);
+
+  if(peakRush){
+    banner.className = "food-banner warn";
+    banner.innerHTML =
+      `⚠️ Wait ~${waitEstimate} min — better to eat at <span class="metric-gradient">${timeText}</span>`;
+  } else {
+    banner.className = "food-banner";
+    banner.innerHTML =
+      `🍔 Good food window — estimated wait ~${waitEstimate} min near your route`;
+  }
+}
+function updateDayStatus(openRides){
+  const allOpen = latestRides.filter(r => r.is_open && r.type !== "food");
+  const routeRides = openRides.filter(r => r.type !== "food").slice(0,6);
+
+  if(!allOpen.length || !routeRides.length) return;
+
+  const parkAvg = allOpen.reduce((sum,r)=>sum+r.wait_time,0) / allOpen.length;
+  const routeAvg = routeRides.reduce((sum,r)=>sum+r.wait_time,0) / routeRides.length;
+
+  const advantage = Math.round(((parkAvg - routeAvg) / Math.max(1, parkAvg)) * 100);
+  const banner = document.getElementById("dayStatusBanner");
+
+  if(advantage >= 15){
+    banner.className = "day-banner";
+    banner.innerHTML = `✅ You’re beating park average by <span class="metric-gradient">${advantage}%</span>`;
+  } else {
+    banner.className = "day-banner warn";
+    banner.innerHTML = `⚠️ You’re falling behind — reroute recommended`;
+  }
+}
+function initParkMap(){
+  if(parkMap){
+    parkMap.remove();
+  }
+
+  parkMap = L.map("liveParkMap", {
+    zoomControl:false
+  }).setView(PARK_CENTERS[selectedPark], 16);
+
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png").addTo(parkMap);
+}
+function clearMarkers(){
+  rideMarkers.forEach(m => parkMap.removeLayer(m));
+  rideMarkers = [];
+}
+
+function refreshMapMarkers(){
+  clearMarkers();
+
+  const routeFoodNames = frozenRoute
+    .filter(r => r.type === "food")
+    .map(r => r.name);
+
+  latestRides
+    .filter(r => r.type !== "food" || routeFoodNames.includes(r.name))
+    .forEach(addRideMarker);
+}
+
+function addRideMarker(ride){
+  if(!ride.lat || !ride.lng) return;
+  const icon = L.divIcon({
+    className:"",
+    html:`<div class="ride-marker">${ride.type === "food" ? "🍽️" : rideIcon(ride.name)}</div>`,
+    iconSize:[42,42],
+    iconAnchor:[21,21]
+  });
+  const marker = L.marker([ride.lat, ride.lng], {icon}).addTo(parkMap);
+  marker.bindPopup(`<strong>${ride.name}</strong><br>Wait: ${ride.wait_time} min`);
+  rideMarkers.push(marker);
+}
+function drawOptimizedRoute(optimizedRides){
+  if(routeLine){
+  parkMap.removeLayer(routeLine);
+}
+
+routeGlowLines.forEach(line => parkMap.removeLayer(line));
+routeGlowLines = [];
+
+  const routeCoords = optimizedRides
+    .filter(r => r.lat && r.lng)
+    .map(r => [r.lat, r.lng]);
+
+  console.log("Route points:", routeCoords);
+
+  if(routeCoords.length < 2) return;
+
+  parkMap.invalidateSize();
+
+ routeLine = L.polyline(routeCoords, {
+  color:"#AEFF00",
+  weight:5,
+  opacity:1,
+  lineCap:"round",
+  lineJoin:"round"
+}).addTo(parkMap);
+
+// softer glow (stack multiple layers for feather effect)
+const glow1 = L.polyline(routeCoords, {
+  color:"#AEFF00",
+  weight:18,
+  opacity:0.18,
+  lineCap:"round",
+  lineJoin:"round"
+}).addTo(parkMap);
+
+const glow2 = L.polyline(routeCoords, {
+  color:"#AEFF00",
+  weight:20,
+  opacity:0.08,
+  lineCap:"round",
+  lineJoin:"round"
+}).addTo(parkMap);
+
+// bring main line to top
+routeGlowLines = [glow1, glow2];
+
+glow2.bringToFront();
+glow1.bringToFront();
+routeLine.bringToFront();
+
+  parkMap.fitBounds(routeLine.getBounds(), {
+    padding:[70,70]
+  });
+}
+function cleanRideName(name){
+  return String(name || "")
+    .replace(/^"+|"+$/g, "")
+    .replace(/[“”]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+async function fetchLiveWaitTimes(){
+  const entityId = PARK_ENTITY_IDS[selectedPark];
+
+  try{
+    if(!parkMap){
+      initParkMap();
+    }
+
+    const res = await fetch(`https://api.themeparks.wiki/v1/entity/${entityId}/live`);
+    const data = await res.json();
+
+    const childrenRes = await fetch(`https://api.themeparks.wiki/v1/entity/${entityId}/children`);
+    const childrenData = await childrenRes.json();
+
+    const locationMap = {};
+    childrenData.children.forEach(c => {
+      if(c.location){
+        locationMap[c.id] = {
+          lat:c.location.latitude,
+          lng:c.location.longitude
+        };
+      }
+    });
+
+    const attractions = data.liveData
+      .filter(r => r.entityType === "ATTRACTION")
+      .map(r => {
+        const loc = locationMap[r.id] || {};
+        return {
+  id:r.id,
+  name:cleanRideName(r.name),
+          type:"ride",
+          is_open:r.status === "OPERATING",
+          wait_time:Number(r.queue?.STANDBY?.waitTime ?? 0),
+          lat:loc.lat,
+          lng:loc.lng
+        };
+      });
+
+    const restaurants = childrenData.children
+  .filter(r => 
+    r.entityType === "RESTAURANT" &&
+    !r.name.toLowerCase().includes("refill") &&
+    !r.name.toLowerCase().includes("drink station") &&
+    !r.name.toLowerCase().includes("coca-cola")
+  )
+  .map(r => {
+    const name = r.name.toLowerCase();
+
+    return {
+  id:r.id,
+  name: cleanRideName(r.name),
+      type:"food",
+      is_open:true,
+      wait_time:0,
+      lat:r.location?.latitude,
+      lng:r.location?.longitude,
+      servesAlcohol:
+        name.includes("bar") ||
+        name.includes("brew") ||
+        name.includes("pub") ||
+        name.includes("saloon") ||
+        name.includes("tavern") ||
+        name.includes("cantina")
+    };
+  })
+  .filter(r => r.lat && r.lng);
+
+    const rides = [...attractions, ...restaurants];
+
+    latestRides = rides;
+    frozenRoute = buildOptimizedRoute(rides);
+
+    refreshMapMarkers();
+    updateUI(rides);
+
+    previousWaits = Object.fromEntries(rides.map(r => [r.name, r.wait_time]));
+
+    drawOptimizedRoute(frozenRoute.slice(0,6));
+
+  }catch(err){
+    console.error(err);
+    document.getElementById("lastUpdated").textContent = "Live data failed to load";
+  }
+}
+function updateTrustLayer(openRides){
+  const allOpen = latestRides.filter(r => r.is_open && r.type !== "food");
+  const routeRides = openRides.filter(r => r.type !== "food").slice(0,6);
+
+  if(!allOpen.length || !routeRides.length) return;
+
+  const parkAvg = allOpen.reduce((sum,r)=>sum+r.wait_time,0) / allOpen.length;
+  const routeAvg = routeRides.reduce((sum,r)=>sum+r.wait_time,0) / routeRides.length;
+
+  const savedMinutes = Math.max(0, Math.round((parkAvg - routeAvg) * routeRides.length));
+  const skippedHigh = allOpen.filter(r =>
+    r.wait_time >= 45 && !routeRides.some(x => x.name === r.name)
+  ).length;
+
+  let message;
+
+  if(savedMinutes > 25){
+    message = `✅ Beating park avg by ~${savedMinutes} min`;
+  } else if(skippedHigh >= 2){
+    message = `⚠️ Skipping ${skippedHigh} long waits`;
+  } else {
+    message = `🎯 Optimized for low wait + flow`;
+  }
+
+  const el = document.getElementById("trustInline");
+el.style.opacity = 0;
+
+setTimeout(() => {
+  el.textContent = message;
+  el.style.opacity = 1;
+}, 120);
+}
+function updateRouteConfidence(openRides){
+  const routeRides = openRides.filter(r => r.type !== "food").slice(0,3);
+  const el = document.getElementById("routeConfidence");
+
+  if(!el || routeRides.length < 2) return;
+
+  const avgWait = Math.round(
+    routeRides.reduce((sum,r)=>sum + r.wait_time, 0) / routeRides.length
+  );
+
+  const mode =
+    userPrefs.walking === "low" ? "minimal walking" :
+    userPrefs.walking === "max" ? "maximum rides" :
+    "low waits + smart walking";
+
+  el.innerHTML = `🎯 Optimized for <span class="metric-gradient">${mode}</span> • next 3 avg wait: ${avgWait} min`;
+}
+function updateNavigationMode(openRides){
+  const current = openRides[0];
+  const next = openRides[1];
+
+  if(!current){
+    document.getElementById("navMain").textContent = "Route complete";
+    document.getElementById("navSub").textContent = "You cleared your optimized list.";
+    return;
+  }
+
+  document.getElementById("navMain").textContent =
+    current.type === "food"
+      ? `Head to ${current.name}`
+      : `Go to ${current.name}`;
+
+  document.getElementById("navSub").textContent =
+    next
+      ? `Next after this: ${next.name}`
+      : "This is your final planned stop.";
+}
+function updateUI(rides){
+  const openRides = frozenRoute.filter(r => !completedRideKeys.includes(rideKey(r)));
+  const best = openRides[0];
+updateNavigationMode(openRides);
+updateRouteConfidence(openRides);
+updateTrustLayer(openRides);
+
+  document.getElementById("lastUpdated").textContent =
+    "Last updated " + new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+
+  document.getElementById("rideList").innerHTML = openRides.slice(0,10).map(r => {
+    const key = rideKey(r);
+
+    return `
+      <div class="ride" data-ride="${key}">
+        <button class="complete-btn" onclick="completeRide('${key}')">✓</button>
+        <div class="rank">${r.type === "food" ? "🍽️" : rideIcon(r.name)}</div>
+        <div class="ride-name">${r.name}</div>
+        <div class="wait ${r.type === "food" ? "low" : waitClass(r.wait_time)}">
+          ${r.type === "food" ? "Meal stop" : r.wait_time + " min"}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  if(best){
+    const bestKey = rideKey(best);
+    document.getElementById("nextRide").textContent = best.name;
+    document.getElementById("nextWait").textContent =
+      best.type === "food" ? "Meal stop" : best.wait_time + " min";
+
+    document.getElementById("goNowCheck").setAttribute("onclick", `completeRide('${bestKey}')`);
+    updateAI(openRides);
+  }
+
+  renderMustRideList(latestRides);
+  updateMetrics(openRides);
+  updateWarRoom(openRides);
+}
+function rideCategory(name){
+  const n = String(name || "").toLowerCase();
+const item = latestRides.find(r => r.name === name);
+if(item && item.type === "food") return "Food";
+
+  if(n.includes("mountain") || n.includes("coaster") || n.includes("tower") || n.includes("thunder") || n.includes("flight") || n.includes("rise") || n.includes("guardians") || n.includes("test track") || n.includes("millennium") || n.includes("slinky dog")) return "Thrill";
+
+  if(n.includes("dumbo") || n.includes("carousel") || n.includes("small world") || n.includes("princess") || n.includes("winnie") || n.includes("peter pan") || n.includes("little mermaid") || n.includes("mickey") || n.includes("mania")) return "Kids";
+
+  if(n.includes("show") || n.includes("theater") || n.includes("philharmagic") || n.includes("country bear") || n.includes("hall") || n.includes("tiki") || n.includes("carousel of progress") || n.includes("presents")) return "Shows";
+
+  return "Other";
+}
+
+function popularityScore(name){
+  const n = name.toLowerCase();
+
+  if(n.includes("rise") || n.includes("flight") || n.includes("guardians")) return 100;
+  if(n.includes("space") || n.includes("slinky") || n.includes("tower")) return 95;
+  if(n.includes("thunder") || n.includes("pirates") || n.includes("haunted")) return 90;
+  if(n.includes("jungle") || n.includes("peter pan")) return 85;
+
+  return 60;
+}
+function togglePriorityItem(name){
+  const item = latestRides.find(r => r.name === name);
+
+  if(item && item.type === "food"){
+    selectedFoodName = selectedFoodName === name ? null : name;
+  } else {
+    if(mustRideNames.includes(name)){
+      mustRideNames = mustRideNames.filter(r => r !== name);
+    } else {
+      mustRideNames.push(name);
+    }
+  }
+
+  frozenRoute = buildOptimizedRoute(latestRides);
+  refreshMapMarkers();
+updateUI(latestRides);
+drawOptimizedRoute(frozenRoute.slice(0,6));
+}
+
+function renderMustRideList(rides){
+  const groups = { Thrill:[], Kids:[], Shows:[], Food:[], Other:[] };
+
+  rides
+    .filter(r => r && r.name && !completedRides.includes(r.name))
+    .sort((a,b) => popularityScore(b.name) - popularityScore(a.name))
+    .forEach(r => {
+      const category = groups[rideCategory(r.name)] ? rideCategory(r.name) : "Other";
+      groups[category].push(r);
+    });
+
+  document.getElementById("mustRideList").innerHTML = Object.keys(groups).map(group => `
+    <details style="background:var(--dark3);border:1px solid var(--cb);border-radius:14px;padding:12px;">
+      <summary style="font-weight:800;cursor:pointer;">${group}</summary>
+
+      ${groups[group].map(r => {
+        const safeName = encodeURIComponent(r.name);
+        const checked = mustRideNames.includes(r.name) || selectedFoodName === r.name;
+
+        return `
+          <div class="ride" style="margin-top:10px;">
+            <button onclick="togglePriorityItem(decodeURIComponent('${safeName}'))" style="background:none;border:0;color:var(--lime);font-size:18px;">
+              ${checked ? "☑" : "☐"}
+            </button>
+
+            <div class="rank">${r.type === "food" ? "🍽️" : rideIcon(r.name)}</div>
+
+            <div class="ride-name">${r.name}</div>
+
+            <div class="wait ${r.type === "food" ? "low" : waitClass(r.wait_time)}">
+              ${r.type === "food" ? estimateFoodDelay(r) + " min est." : r.wait_time + " min"}
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </details>
+  `).join("");
+}
+function updateWarRoom(openRides){
+  const best = openRides[0];
+  const second = openRides[1];
+  const worst = [...openRides].sort((a,b)=>b.wait_time-a.wait_time)[0];
+
+  if(!best) return;
+
+  document.getElementById("routeMove").textContent = best.wait_time + "m";
+  document.getElementById("routeText").textContent = `Go to ${best.name} now. Best route score.`;
+
+  document.getElementById("forecastWait").textContent = worst ? worst.wait_time + "m" : "--";
+  document.getElementById("forecastText").textContent = worst ? `Avoid ${worst.name} for now.` : "No major waits.";
+
+  document.getElementById("walkScore").innerHTML = second ? `<span class="metric-gradient">Excellent</span>` : "--";
+  document.getElementById("walkText").textContent = second ? `Pair ${best.name} with ${second.name}.` : "Need more rides.";
+}
+</script>
+
+</body>
+</html>
