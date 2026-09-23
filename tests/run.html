@@ -18,7 +18,7 @@
 import { run } from "./harness.js";
 
 // Each task appends its test file (without ".test.js").
-const FILES = ["smoke"];
+const FILES = ["smoke", "walkgraph"];
 
 const only = new URLSearchParams(location.search).get("only");
 for(const name of FILES.filter(f => !only || f === only)){
