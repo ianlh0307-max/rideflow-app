@@ -24,7 +24,8 @@ let walkData = null;          // data/walkways JSON, or null when unavailable
 let rideDetails = {};
 let gps = null;               // { lat, lng, accuracy }
 let lockedNextId = null;
-let shownRideIds = new Set();   // rides "Reevaluate" has already shown; kept de-prioritized until settings change
+let shownRideIds = new Set();   // rides "Reevaluate" is steering away from; kept until settings change
+let recentPlans = [];           // optional rides of the last two plans Reevaluate replaced
 let planRequestId = 0;
 let planState = emptyPlanState();
 let userFoodPlan = "eat-late";
@@ -478,7 +479,7 @@ function buildPlanRequest({ force, prefsChanged, unlock }){
 
 async function requestPlan({ force = false, prefsChanged = false, unlock = false } = {}){
   if(!latestRides.length || planStartMin === null) return null;
-  if(prefsChanged) shownRideIds.clear();   // new settings, fresh recommendations
+  if(prefsChanged){ shownRideIds.clear(); recentPlans = []; }   // new settings, fresh recommendations
   const request = buildPlanRequest({ force, prefsChanged, unlock });
   const id = ++planRequestId;
   let reply = await planner.run(request, id);
@@ -627,8 +628,8 @@ function renderRoute(){
   drawOptimizedRoute();
 }
 
-// "Reevaluate" asks for different rides: everything already shown counts for less
-// (must-rides and the meal stay), and once nothing new fits it starts over.
+// "Reevaluate" asks for different rides: the rides of the last two plans count for less
+// (must-rides and the meal stay), so headliners come back after a couple of presses.
 async function reevaluateRoute(){
   const btn = document.getElementById("reevaluateBtn");
   const optionalRides = ids => ids.filter(id =>
@@ -636,7 +637,8 @@ async function reevaluateRoute(){
   const current = optionalRides(currentStops().map(rideKey));
   const bringsNew = plan => !!plan && optionalRides(plan.ids).some(id => !current.includes(id));
 
-  current.forEach(id => shownRideIds.add(id));
+  recentPlans = [current, ...recentPlans].slice(0, 2);
+  shownRideIds = new Set(recentPlans.flat());
   btn.disabled = true;
   let plan = await requestPlan({ force:true, unlock:true });
   if(plan && !bringsNew(plan)){
