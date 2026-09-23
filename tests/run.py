@@ -9,9 +9,9 @@ import subprocess
 import sys
 
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-url = "http://127.0.0.1:8765/tests/run.html"
+url = "http://127.0.0.1:8765/tests/run.html?headless=1"
 if len(sys.argv) > 1:
-    url += f"?only={sys.argv[1]}"
+    url += f"&only={sys.argv[1]}"
 
 out = subprocess.run(
     [CHROME, "--headless=new", "--disable-gpu", "--virtual-time-budget=120000", "--dump-dom", url],

@@ -1,8 +1,9 @@
 // Minimal browser test harness: register tests, run them, report to tests/run.html.
 const tests = [];
 
-// Headless Chrome with a virtual time budget freezes performance.now() during sync code.
-export const realClock = (() => {
+// Headless Chrome with a virtual time budget freezes performance.now(), so tests/run.py
+// marks headless runs with ?headless=1 and timing tests only run in a normal browser.
+export const realClock = !new URLSearchParams(location.search).has("headless") && (() => {
   const t = performance.now();
   let x = 0;
   for(let i = 0; i < 3e6; i++) x += i;
