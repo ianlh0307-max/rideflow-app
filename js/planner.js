@@ -140,3 +140,111 @@ export function isBetter(a, b){
   if(a.valid !== b.valid) return a.valid;
   return objective(a) > objective(b);
 }
+
+function extend(state, stop, ctx){
+  if(state.visited.has(stop.id)) return null;
+  if(stop.kind === "meal" && (state.meal || !ctx.mealWin)) return null;
+  const walk = ctx.matrix.minutes[state.at][stop.idx];
+  const times = stopTimes(stop, state.clock + walk, ctx);
+  if(!times || times.end > ctx.budgetEnd) return null;
+  const visited = new Set(state.visited);
+  visited.add(stop.id);
+  return {
+    ids: [...state.ids, stop.id],
+    visited,
+    clock: times.end,
+    at: stop.idx,
+    points: state.points + ctx.points.get(stop.id),
+    walkMin: state.walkMin + walk,
+    meal: state.meal || stop.kind === "meal",
+    must: state.must + (ctx.mustSet.has(stop.id) ? 1 : 0)
+  };
+}
+
+// Upper bound on what's still reachable: best value-per-minute rides, zero walking.
+function optimisticRemaining(state, densities, ctx){
+  let minutes = ctx.budgetEnd - state.clock;
+  let total = 0;
+  for(const d of densities){
+    if(minutes <= 0) break;
+    if(state.visited.has(d.id)) continue;
+    if(d.cost <= minutes){ total += d.value; minutes -= d.cost; }
+    else { total += d.value * minutes / d.cost; break; }
+  }
+  return total;
+}
+
+export function beamSearch(ctx, width = 200){
+  const densities = ctx.rides
+    .map(s => ({ id: s.id, value: ctx.points.get(s.id), cost: (s.wait || 0) + (s.duration || 0) + LOAD_UNLOAD_MIN }))
+    .filter(d => d.value > 0)
+    .sort((a, b) => b.value / b.cost - a.value / a.cost);
+
+  const root = { ids: [], visited: new Set(), clock: ctx.now, at: ctx.startIdx, points: 0, walkMin: 0, meal: false, must: 0 };
+  let beam = [root];
+  if(ctx.lockedId){
+    const locked = extend(root, ctx.byId.get(ctx.lockedId), ctx);
+    if(locked) beam = [locked];
+  }
+
+  let best = evaluate(beam[0].ids, ctx);
+  const stops = [...ctx.byId.values()];
+
+  while(beam.length){
+    const next = [];
+    for(const state of beam){
+      for(const stop of stops){
+        const child = extend(state, stop, ctx);
+        if(child) next.push(child);
+      }
+    }
+    if(!next.length) break;
+
+    for(const c of next){
+      const missedMeal = ctx.mealWin && !c.meal && c.clock > ctx.mealWin[1];
+      c.rank = c.points - ctx.penalty * c.walkMin + MUST_RIDE_WEIGHT * c.must
+        + optimisticRemaining(c, densities, ctx) - (missedMeal ? MUST_RIDE_WEIGHT * 10 : 0);
+    }
+    next.sort((a, b) => b.rank - a.rank);
+
+    beam = [];
+    const seen = new Set();
+    for(const c of next){
+      if(beam.length >= width) break;
+      const key = `${c.at}|${[...c.visited].sort().join(",")}`;
+      if(seen.has(key)) continue;
+      seen.add(key);
+      beam.push(c);
+    }
+
+    for(const c of beam){
+      const ev = evaluate(c.ids, ctx);
+      if(ev.valid && isBetter(ev, best)) best = ev;
+    }
+  }
+  return best;
+}
+
+export function nearestRidePlan(input){
+  const ctx = { ...buildContext({ ...input, lockedNextId: null, mustRideIds: [] }), mealWin: null };
+  const left = new Set(ctx.rides.map(s => s.id));
+  const ids = [];
+  let at = ctx.startIdx, clock = ctx.now;
+
+  while(true){
+    let pick = null, pickWalk = Infinity;
+    for(const id of left){
+      const stop = ctx.byId.get(id);
+      const walk = ctx.matrix.minutes[at][stop.idx];
+      if(walk >= pickWalk) continue;
+      const times = stopTimes(stop, clock + walk, ctx);
+      if(times && times.end <= ctx.budgetEnd){ pick = stop; pickWalk = walk; }
+    }
+    if(!pick) break;
+    clock = stopTimes(pick, clock + pickWalk, ctx).end;
+    at = pick.idx;
+    ids.push(pick.id);
+    left.delete(pick.id);
+  }
+  return evaluate(ids, ctx);
+}
