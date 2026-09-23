@@ -426,7 +426,9 @@ function startPoint(){
 }
 
 function buildPlanRequest({ force, prefsChanged }){
-  const mealDone = latestRides.some(r => r.type === "food" && completedRideKeys.includes(rideKey(r)));
+  // Restaurants have no live status, so when no ride is running the park is closed: no meal either.
+  const parkOpen = latestRides.some(r => r.type !== "food" && r.is_open);
+  const mealDone = !parkOpen || latestRides.some(r => r.type === "food" && completedRideKeys.includes(rideKey(r)));
   const rides = latestRides.filter(r => r.type !== "food" && r.is_open && r.lat && r.lng && !completedRideKeys.includes(rideKey(r)));
   const node = r => walkData?.anchors?.[r.id]?.node;
 
@@ -970,8 +972,9 @@ function updateNavigationMode(stops, anyOpen){
   sub.textContent = next ? `Then ${next.name}` : "Last stop on your route";
 
   if(current.type === "food"){
+    // The label already says "meal stop"; leave the title the full width.
     wait.className = "next-wait meal";
-    wait.textContent = "Meal";
+    wait.textContent = "";
   } else {
     wait.className = "next-wait " + waitClass(current.wait_time);
     wait.innerHTML = current.wait_time > 0 ? `${current.wait_time}<span class="unit">min</span>` : `<span class="no-wait">No wait</span>`;
@@ -1196,6 +1199,11 @@ function updateFoodTiming(){
   if(userFoodPlan === "skip-food"){
     banner.className = "banner info";
     banner.textContent = "No meal planned. Your route focuses fully on rides.";
+    return;
+  }
+  if(latestRides.length && !latestRides.some(r => r.type !== "food" && r.is_open)){
+    banner.className = "banner info";
+    banner.textContent = "No meal planned while the park is closed.";
     return;
   }
   const meal = currentStops().find(r => r.type === "food");
