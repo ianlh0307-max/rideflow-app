@@ -158,3 +158,23 @@ test("a restaurant leaving the shortlist isn't reported as closed; real closures
   const closed = planDay({ ...baseInput(park(), base), previousPlan:{ ids:["gone", "a"], names:{ gone:"Space Mountain", a:"a" }, closed:["gone"] } });
   assertEqual(closed.reason, "Space Mountain closed, so your plan changed.");
 });
+
+test("avoiding the rides already shown picks different rides but keeps must-rides and the meal", () => {
+  const input = () => baseInput(randomPark(30, 12), { prefs:{ food:"eat-late" }, mustRideIds:["p3"], budgetEnd: 540 + 360 });
+  const first = planDay(input()).plan;
+  const kind = id => input().stops.find(s => s.id === id).kind;
+  const shownRides = first.ids.filter(id => kind(id) !== "meal" && id !== "p3");
+  const again = planDay({ ...input(), force: true, avoidIds: shownRides }).plan;
+  const newRides = again.ids.filter(id => kind(id) !== "meal" && id !== "p3");
+  assert(again.ids.includes("p3"), "must-ride dropped");
+  assert(again.ids.some(id => kind(id) === "meal"), "meal dropped");
+  const fresh = newRides.filter(id => !shownRides.includes(id));
+  assert(fresh.length >= Math.ceil(newRides.length / 3), `only ${fresh.length} of ${newRides.length} rides are new`);
+});
+
+test("avoidIds never makes a must-ride less appealing", () => {
+  const park = makePark([ride("a", 100, 0), ride("b", 200, 0)]);
+  const ctx = buildContext(baseInput(park, { mustRideIds:["a"], avoidIds:["a", "b"] }));
+  assertEqual(ctx.points.get("a"), 60);
+  assertEqual(ctx.points.get("b"), 30);
+});

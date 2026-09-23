@@ -14,6 +14,7 @@ export const MEAL_MIN = 40;
 export const SHOW_ARRIVE_EARLY_MIN = 5;
 export const MUST_RIDE_WEIGHT = 1000;
 export const ADOPT_MARGIN = 0.03;
+export const AVOID_FACTOR = 0.5;    // points kept by rides the guest has already been shown
 export const EXPAND_LIMIT = 25;     // beam search: next stops tried per partial day
 
 export function enjoyment(stop, prefs){
@@ -58,9 +59,13 @@ export function buildContext(input){
   const mustIds = requestedMust.filter(id => byId.has(id));
   const lockedId = input.lockedNextId && byId.has(input.lockedNextId) ? input.lockedNextId : null;
 
+  // "Reevaluate" passes the rides already shown; they count for half so other rides get a turn.
+  // Must-rides are never made less appealing.
+  const avoid = new Set((input.avoidIds || []).filter(id => !mustIds.includes(id)));
+
   return {
     byId,
-    points: new Map(stops.map(s => [s.id, enjoyment(s, prefs)])),
+    points: new Map(stops.map(s => [s.id, enjoyment(s, prefs) * (avoid.has(s.id) ? AVOID_FACTOR : 1)])),
     rides: stops.filter(s => s.kind !== "meal"),
     meals,
     matrix, startIdx, prefs, now, budgetEnd,

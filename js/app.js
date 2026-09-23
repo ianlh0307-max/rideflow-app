@@ -24,6 +24,7 @@ let walkData = null;          // data/walkways JSON, or null when unavailable
 let rideDetails = {};
 let gps = null;               // { lat, lng, accuracy }
 let lockedNextId = null;
+let shownRideIds = new Set();   // rides "Reevaluate" has already shown; kept de-prioritized until settings change
 let planRequestId = 0;
 let planState = emptyPlanState();
 let userFoodPlan = "eat-late";
@@ -53,6 +54,7 @@ const PARK_SLUGS = {
   "Animal Kingdom":"animal-kingdom", "Disneyland":"disneyland", "Cedar Point":"cedar-point", "Kings Island":"kings-island"
 };
 const MEAL_CANDIDATES = 12;
+const MAP_STOPS = 6;          // next stops highlighted on the map
 
 function emptyPlanState(){
   return { ids:[], timeline:[], legs:[], baseline:null, estimated:false, warnings:[], reason:null,
@@ -426,7 +428,7 @@ function startPoint(){
   return { lat, lng, source:"entrance", gpsOutside:!!gpsUsable };
 }
 
-function buildPlanRequest({ force, prefsChanged }){
+function buildPlanRequest({ force, prefsChanged, unlock }){
   // Restaurants have no live status, so when no ride is running the park is closed: no meal either.
   const parkOpen = latestRides.some(r => r.type !== "food" && r.is_open);
   const mealDone = !parkOpen || latestRides.some(r => r.type === "food" && completedRideKeys.includes(rideKey(r)));
@@ -460,7 +462,8 @@ function buildPlanRequest({ force, prefsChanged }){
       planStart: planStartMin,
       budgetEnd: budgetEndMin(),
       mustRideIds: mustRideIds.filter(id => !completedRideKeys.includes(id)),
-      lockedNextId,
+      lockedNextId: unlock ? null : lockedNextId,
+      avoidIds: [...shownRideIds],
       previousPlan: remainingPlan.length ? { ids:remainingPlan, names, closed:remainingPlan.filter(id => latestRides.some(r => rideKey(r) === id && r.type !== "food" && !r.is_open)) } : null,
       previousWaits,
       prefsChanged,
@@ -473,19 +476,21 @@ function buildPlanRequest({ force, prefsChanged }){
   };
 }
 
-async function requestPlan({ force = false, prefsChanged = false } = {}){
-  if(!latestRides.length || planStartMin === null) return;
-  const request = buildPlanRequest({ force, prefsChanged });
+async function requestPlan({ force = false, prefsChanged = false, unlock = false } = {}){
+  if(!latestRides.length || planStartMin === null) return null;
+  if(prefsChanged) shownRideIds.clear();   // new settings, fresh recommendations
+  const request = buildPlanRequest({ force, prefsChanged, unlock });
   const id = ++planRequestId;
   let reply = await planner.run(request, id);
   if(!reply) reply = await planner.run(request, id);   // worker died; client now plans on the main thread
-  if(id !== planRequestId) return;                     // a newer request superseded this one
+  if(id !== planRequestId) return null;                // a newer request superseded this one
   if(!reply?.ok){
     console.error("[RideFlow] planner failed:", reply?.error);
-    return;
+    return null;
   }
   applyPlan(reply, request);
   renderRoute();
+  return planState;
 }
 
 function applyPlan(reply, request){
@@ -622,11 +627,25 @@ function renderRoute(){
   drawOptimizedRoute();
 }
 
-function reevaluateRoute(){
-  requestPlan({ force:true });
+// "Reevaluate" asks for different rides: everything already shown counts for less
+// (must-rides and the meal stay), and once nothing new fits it starts over.
+async function reevaluateRoute(){
   const btn = document.getElementById("reevaluateBtn");
-  btn.textContent = "Route updated";
-  setTimeout(() => btn.textContent = "Reevaluate route", 1000);
+  const optionalRides = ids => ids.filter(id =>
+    !mustRideIds.includes(id) && latestRides.some(r => rideKey(r) === id && r.type !== "food"));
+  const current = optionalRides(currentStops().map(rideKey));
+  const bringsNew = plan => !!plan && optionalRides(plan.ids).some(id => !current.includes(id));
+
+  current.forEach(id => shownRideIds.add(id));
+  btn.disabled = true;
+  let plan = await requestPlan({ force:true, unlock:true });
+  if(plan && !bringsNew(plan)){
+    shownRideIds = new Set(current);
+    plan = await requestPlan({ force:true, unlock:true });
+  }
+  btn.disabled = false;
+  btn.textContent = bringsNew(plan) ? "New rides picked" : "No other rides fit right now";
+  setTimeout(() => btn.textContent = "Reevaluate route", 1500);
 }
 
 function completeRide(key){
@@ -695,7 +714,8 @@ function refreshMapMarkers(){
   if(!parkMap) return;
   clearMarkers();
 
-  const stops = currentStops();
+  // Only the next few stops get numbered pins; later ones are plain dots like any other ride.
+  const stops = currentStops().slice(0, MAP_STOPS);
   const stopKeys = new Set(stops.map(rideKey));
 
   latestRides
@@ -740,7 +760,8 @@ function drawOptimizedRoute(){
 
   const legs = planState.ids
     .map((id, i) => ({ id, coords: planState.legs[i] }))
-    .filter(leg => !completedRideKeys.includes(leg.id) && leg.coords?.length >= 2);
+    .filter(leg => !completedRideKeys.includes(leg.id) && leg.coords?.length >= 2)
+    .slice(0, MAP_STOPS);
 
   parkMap.invalidateSize();
 
