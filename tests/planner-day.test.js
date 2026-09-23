@@ -149,3 +149,12 @@ test("a settings change always re-plans for the new settings and says so", () =>
   assertEqual(r.plan.ids, ["near"]);
   assertEqual(r.reason, "Updated for your new settings.");
 });
+
+test("a restaurant leaving the shortlist isn't reported as closed; real closures are (review #9)", () => {
+  const park = () => makePark([ride("a", 100, 0, { wait:5 }), ride("b", 200, 0, { wait:5, name:"B" }), meal("m-new", 50, 0)]);
+  const base = { budgetEnd: 11 * 60 + 120, prefs:{ food:"eat-early" }, now: 11 * 60, planStart: 9 * 60 };
+  const swapped = planDay({ ...baseInput(park(), base), previousPlan:{ ids:["m-old", "a"], names:{ "m-old":"Old Cafe", a:"a" }, closed:[] } });
+  assert(!/closed/.test(swapped.reason || ""), `reason was: ${swapped.reason}`);
+  const closed = planDay({ ...baseInput(park(), base), previousPlan:{ ids:["gone", "a"], names:{ gone:"Space Mountain", a:"a" }, closed:["gone"] } });
+  assertEqual(closed.reason, "Space Mountain closed, so your plan changed.");
+});

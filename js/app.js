@@ -1,7 +1,8 @@
 import { loadWalkGraph } from "./walkgraph.js";
 import { runPlanRequest } from "./plan-request.js";
 import { hashSeed } from "./planner.js";
-import { parkClock, isoToParkMinutes, closingMinutes, showtimeMinutes, minutesToClock, formatDuration } from "./livedata.js";
+import { isoToParkMinutes, minutesToClock, formatDuration, liveAttractions, operatingDay, PARK_TIMEZONES } from "./livedata.js";
+import { emptyRouteReason } from "./status.js";
 import { rideDetailsFor } from "./ridedata.js";
 
 let selectedPark = null;
@@ -273,16 +274,16 @@ function budgetEndMin(){
 }
 
 async function loadParkMeta(park){
+  let json = null;
   try{
-    const json = await fetch(`https://api.themeparks.wiki/v1/entity/${PARK_ENTITY_IDS[park]}/schedule`).then(r => r.json());
-    if(json.timezone) parkTimeZone = json.timezone;
-    parkDate = parkClock(new Date(), parkTimeZone).date;
-    parkCloseMin = closingMinutes(json, parkTimeZone, parkDate);
+    const res = await fetch(`https://api.themeparks.wiki/v1/entity/${PARK_ENTITY_IDS[park]}/schedule`);
+    if(res.ok) json = await res.json();
   }catch(err){
     console.warn("[RideFlow] park schedule unavailable", err);
-    parkDate = parkClock(new Date(), parkTimeZone).date;
-    parkCloseMin = null;
   }
+  if(park !== selectedPark) return;   // the guest picked another park while this loaded
+  parkTimeZone = json?.timezone || PARK_TIMEZONES[park];
+  ({ parkDate, closeMin: parkCloseMin } = operatingDay(json, parkTimeZone, new Date()));
 }
 
 async function loadParkData(){
@@ -460,7 +461,7 @@ function buildPlanRequest({ force, prefsChanged }){
       budgetEnd: budgetEndMin(),
       mustRideIds: mustRideIds.filter(id => !completedRideKeys.includes(id)),
       lockedNextId,
-      previousPlan: remainingPlan.length ? { ids:remainingPlan, names } : null,
+      previousPlan: remainingPlan.length ? { ids:remainingPlan, names, closed:remainingPlan.filter(id => latestRides.some(r => rideKey(r) === id && r.type !== "food" && !r.is_open)) } : null,
       previousWaits,
       prefsChanged,
       force,
@@ -657,7 +658,7 @@ function togglePriorityItem(key){
   else if(mustRideIds.includes(key)) mustRideIds = mustRideIds.filter(id => id !== key);
   else mustRideIds.push(key);
   renderMustRideList(latestRides);
-  requestPlan();
+  requestPlan({ prefsChanged:true });
 }
 
 /* ---------- Map ---------- */
@@ -810,22 +811,7 @@ async function fetchLiveWaitTimes(){
       }
     });
 
-    const attractions = data.liveData
-      .filter(r => r.entityType === "ATTRACTION" || (r.entityType === "SHOW" && r.showtimes?.length))
-      .map(r => {
-        const loc = locationMap[r.id] || {};
-        const show = r.entityType === "SHOW";
-        return {
-          id:r.id,
-          name:cleanRideName(r.name),
-          type: show ? "show" : "ride",
-          is_open:r.status === "OPERATING",
-          wait_time:Number(r.queue?.STANDBY?.waitTime ?? 0),
-          showtimes: show ? showtimeMinutes(r.showtimes, parkTimeZone, parkDate).filter(t => t > nowMin) : undefined,
-          lat:loc.lat,
-          lng:loc.lng
-        };
-      });
+    const attractions = liveAttractions(data.liveData, locationMap, parkTimeZone, parkDate, nowMin, cleanRideName);
 
     const restaurants = childrenData.children
       .filter(r =>
@@ -924,6 +910,11 @@ function updateUI(){
   updateWarRoom(stops);
 }
 
+function emptyReason(anyOpen){
+  const openRidesLeft = latestRides.filter(r => r.type !== "food" && r.is_open && !completedRideKeys.includes(rideKey(r))).length;
+  return emptyRouteReason({ planned: planState.summary !== null, anyOpen, openRidesLeft });
+}
+
 function updateNavigationMode(stops, anyOpen){
   const label = document.getElementById("nextLabel");
   const main = document.getElementById("navMain");
@@ -945,16 +936,20 @@ function updateNavigationMode(stops, anyOpen){
     check.classList.add("hidden");
     wait.textContent = "";
     meta.textContent = "";
-    const outOfTime = planStartMin !== null && budgetEndMin() - parkNow() < 15;
+    const why = emptyReason(anyOpen);
 
-    if(!anyOpen){
+    if(why === "planning"){
+      label.textContent = "Next up";
+      main.textContent = "Calculating your best move…";
+      sub.textContent = "RideFlow is building your route.";
+    }else if(why === "closed"){
       label.textContent = "Park closed";
       main.textContent = `${selectedPark} is closed right now`;
       sub.textContent = "No rides are reporting live waits. Your route builds automatically once rides open, or you can pick another park in Settings.";
-    }else if(outOfTime){
+    }else if(why === "no-time"){
       label.textContent = "Time's up";
       main.textContent = "Not enough time left for another ride";
-      sub.textContent = "Add time in Settings to keep planning.";
+      sub.textContent = "Nothing open fits in your remaining time. Add time in Settings, or check back when waits drop.";
     }else{
       label.textContent = "Route complete";
       main.textContent = "You’ve cleared your route";
@@ -1026,7 +1021,7 @@ function updateTrustLayer(stops, anyOpen){
   if(!anyOpen){
     message = "No rides are running right now";
   } else if(!routeRides.length){
-    message = planStartMin !== null && budgetEndMin() - parkNow() < 15 ? "No time left in your plan" : "Route complete";
+    message = { planning:"Building your route…", "no-time":"No time left for another ride" }[emptyReason(anyOpen)] || "Route complete";
   } else {
     const parkAvg = allOpen.reduce((sum,r)=>sum+r.wait_time,0) / allOpen.length;
     const routeAvg = routeRides.reduce((sum,r)=>sum+r.wait_time,0) / routeRides.length;
@@ -1238,8 +1233,9 @@ function updateDayStatus(stops){
   }
 
   if(!routeRides.length){
-    banner.className = "banner good";
-    banner.textContent = "Your route is complete.";
+    const why = emptyReason(true);
+    banner.className = why === "complete" ? "banner good" : "banner";
+    banner.textContent = { planning:"Building your route…", "no-time":"No open ride fits in your remaining time." }[why] || "Your route is complete.";
     return;
   }
 

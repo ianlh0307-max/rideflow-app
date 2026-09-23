@@ -54,3 +54,33 @@ test("formatDuration", () => {
   assertEqual(formatDuration(100), "1h 40m");
   assertEqual(formatDuration(120), "2h 00m");
 });
+
+import { liveAttractions, operatingDay, PARK_TIMEZONES } from "../js/livedata.js";
+
+test("liveAttractions drops shows whose performances are all over (review #1)", () => {
+  const live = [
+    { id:"parade", name:"Parade", entityType:"SHOW", status:"OPERATING", showtimes:[{ startTime:"2026-09-23T14:00:00-04:00" }] },
+    { id:"fireworks", name:"Fireworks", entityType:"SHOW", status:"OPERATING", showtimes:[{ startTime:"2026-09-23T14:00:00-04:00" }, { startTime:"2026-09-23T21:00:00-04:00" }] },
+    { id:"ride", name:"Ride", entityType:"ATTRACTION", status:"OPERATING", queue:{ STANDBY:{ waitTime:null } } }
+  ];
+  const out = liveAttractions(live, { ride:{ lat:1, lng:2 } }, "America/New_York", "2026-09-23", 16 * 60);
+  assertEqual(out.map(r => r.id), ["fireworks", "ride"]);
+  assertEqual(out[0].type, "show");
+  assertEqual(out[0].showtimes, [1260]);
+  assertEqual(out[1], { id:"ride", name:"Ride", type:"ride", is_open:true, wait_time:0, showtimes:undefined, lat:1, lng:2 });
+});
+
+test("operatingDay: at 00:20 during a 1 AM close, the day is still yesterday's (review #3)", () => {
+  const schedule = { schedule: [
+    { date:"2026-09-23", type:"OPERATING", openingTime:"2026-09-23T09:00:00-04:00", closingTime:"2026-09-24T01:00:00-04:00" },
+    { date:"2026-09-24", type:"OPERATING", openingTime:"2026-09-24T09:00:00-04:00", closingTime:"2026-09-24T23:00:00-04:00" }
+  ]};
+  assertEqual(operatingDay(schedule, "America/New_York", new Date("2026-09-24T04:20:00Z")), { parkDate:"2026-09-23", closeMin:1500 });
+  assertEqual(operatingDay(schedule, "America/New_York", new Date("2026-09-24T15:00:00Z")), { parkDate:"2026-09-24", closeMin:1380 });
+});
+
+test("operatingDay without a schedule uses the park's own date and no close (review #4)", () => {
+  const noonInAnaheim = new Date("2026-09-23T19:00:00Z");
+  assertEqual(PARK_TIMEZONES["Disneyland"], "America/Los_Angeles");
+  assertEqual(operatingDay(null, PARK_TIMEZONES["Disneyland"], noonInAnaheim), { parkDate:"2026-09-23", closeMin:null });
+});

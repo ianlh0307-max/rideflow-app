@@ -403,7 +403,8 @@ function sameIds(a, b){
 function explainChange(input, newPlan, ctx){
   if(input.prefsChanged) return "Updated for your new settings.";
   const prev = input.previousPlan;
-  const closed = prev.ids.find(id => !ctx.byId.has(id));
+  // Only stops the app reports as closed; a restaurant leaving the shortlist isn't a closure.
+  const closed = (prev.closed || []).find(id => prev.ids.includes(id));
   if(closed) return `${prev.names?.[closed] || "A ride on your plan"} closed, so your plan changed.`;
 
   const waits = input.previousWaits || {};
