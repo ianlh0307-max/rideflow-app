@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RideFlow tests</title>
+<style>
+  body{font:14px/1.5 system-ui,sans-serif;background:#0a0c11;color:#e8ecf4;padding:24px}
+  .pass{color:#aeff00} .fail{color:#ff5a5a} .skip{color:#8b95a7}
+  pre{white-space:pre-wrap}
+</style>
+</head>
+<body>
+<h1>RideFlow tests</h1>
+<pre id="summary">RUNNING</pre>
+<pre id="failures"></pre>
+<ul id="results"></ul>
+<script type="module">
+import { run } from "./harness.js";
+
+// Each task appends its test file (without ".test.js").
+const FILES = ["smoke"];
+
+const only = new URLSearchParams(location.search).get("only");
+for(const name of FILES.filter(f => !only || f === only)){
+  await import(`./${name}.test.js`);
+}
+
+const { results, passed, failed, skipped } = await run();
+document.getElementById("results").innerHTML = results.map(r =>
+  `<li class="${r.status}">${r.status.toUpperCase()} ${r.name}${r.note ? ` — ${r.note}` : ""}</li>`
+).join("");
+document.getElementById("failures").textContent = results
+  .filter(r => r.status === "fail")
+  .map(r => `FAIL: ${r.name} — ${r.note}`)
+  .join("\n");
+document.getElementById("summary").textContent =
+  `${failed ? "FAIL" : "PASS"} ${passed} passed, ${failed} failed, ${skipped} skipped`;
+</script>
+</body>
+</html>
