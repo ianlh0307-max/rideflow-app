@@ -54,3 +54,12 @@ test("beam search scores at least as well as nearest-ride on every fixture", () 
     assert(beam.score >= greedyInBeamTerms.score, `beam ${beam.score} < nearest ${greedyInBeamTerms.score}`);
   }
 });
+
+test("beam search keeps meal-taking days alive when the meal window closes at the budget end", () => {
+  // Regression: meal-less partial days out-ranked every meal-taking one, so beam returned just the meal.
+  const ctx = buildContext(baseInput(randomPark(56, 77), { prefs:{ food:"eat-late" } }));
+  const best = beamSearch(ctx);
+  assert(best.valid, "beam result should be valid");
+  assert(best.ids.some(id => ctx.byId.get(id).kind === "meal"), "meal missing");
+  assert(best.rides >= 8, `only ${best.rides} rides`);
+});

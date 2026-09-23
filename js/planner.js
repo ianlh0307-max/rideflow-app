@@ -14,6 +14,7 @@ export const MEAL_MIN = 40;
 export const SHOW_ARRIVE_EARLY_MIN = 5;
 export const MUST_RIDE_WEIGHT = 1000;
 export const ADOPT_MARGIN = 0.03;
+export const EXPAND_LIMIT = 25;     // beam search: next stops tried per partial day
 
 export function enjoyment(stop, prefs){
   if(stop.kind === "meal") return 0;
@@ -162,8 +163,9 @@ function extend(state, stop, ctx){
 }
 
 // Upper bound on what's still reachable: best value-per-minute rides, zero walking.
-function optimisticRemaining(state, densities, ctx){
-  let minutes = ctx.budgetEnd - state.clock;
+// `reserve` holds back time for a meal the day still owes.
+function optimisticRemaining(state, densities, ctx, reserve){
+  let minutes = ctx.budgetEnd - state.clock - reserve;
   let total = 0;
   for(const d of densities){
     if(minutes <= 0) break;
@@ -189,11 +191,24 @@ export function beamSearch(ctx, width = 200){
 
   let best = evaluate(beam[0].ids, ctx);
   const stops = [...ctx.byId.values()];
+  // A day that still owes its meal must keep time for it, or meal-less days out-rank
+  // every meal-taking one and the beam never finds a valid day.
+  const mealCost = ctx.mealWin ? MEAL_MIN + Math.min(...ctx.meals.map(m => m.mealDelay || 0)) : 0;
 
   while(beam.length){
     const next = [];
     for(const state of beam){
-      for(const stop of stops){
+      // Only the most promising next stops; must-rides and meals always stay in.
+      const options = stops
+        .filter(stop => !state.visited.has(stop.id))
+        .map(stop => ({
+          stop,
+          key: ctx.points.get(stop.id) - ctx.penalty * ctx.matrix.minutes[state.at][stop.idx]
+            + (ctx.mustSet.has(stop.id) || stop.kind === "meal" ? MUST_RIDE_WEIGHT : 0)
+        }))
+        .sort((a, b) => b.key - a.key)
+        .slice(0, EXPAND_LIMIT);
+      for(const { stop } of options){
         const child = extend(state, stop, ctx);
         if(child) next.push(child);
       }
@@ -201,9 +216,10 @@ export function beamSearch(ctx, width = 200){
     if(!next.length) break;
 
     for(const c of next){
-      const missedMeal = ctx.mealWin && !c.meal && c.clock > ctx.mealWin[1];
+      const owesMeal = ctx.mealWin && !c.meal;
+      const missedMeal = owesMeal && (c.clock > ctx.mealWin[1] || c.clock + mealCost > ctx.budgetEnd);
       c.rank = c.points - ctx.penalty * c.walkMin + MUST_RIDE_WEIGHT * c.must
-        + optimisticRemaining(c, densities, ctx) - (missedMeal ? MUST_RIDE_WEIGHT * 10 : 0);
+        + optimisticRemaining(c, densities, ctx, owesMeal ? mealCost : 0) - (missedMeal ? MUST_RIDE_WEIGHT * 10 : 0);
     }
     next.sort((a, b) => b.rank - a.rank);
 
@@ -247,4 +263,207 @@ export function nearestRidePlan(input){
     left.delete(pick.id);
   }
   return evaluate(ids, ctx);
+}
+
+export function mulberry32(seed){
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function hashSeed(text){
+  let h = 2166136261;
+  for(const ch of String(text)){
+    h ^= ch.codePointAt(0);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+const MOVES = ["swap", "relocate", "reverse", "drop", "insert", "replace", "restaurant"];
+
+function mutate(ids, ctx, rng){
+  const fixed = ctx.lockedId ? 1 : 0;
+  const out = ids.slice();
+  const n = out.length;
+  const pick = (lo, hi) => lo + Math.floor(rng() * (hi - lo));
+  const unusedRide = () => {
+    const pool = ctx.rides.filter(s => !out.includes(s.id));
+    return pool.length ? pool[pick(0, pool.length)].id : null;
+  };
+  const protectedAt = i => ctx.byId.get(out[i]).kind === "meal" || ctx.mustSet.has(out[i]);
+
+  switch(MOVES[pick(0, MOVES.length)]){
+    case "swap": {
+      if(n - fixed < 2) return null;
+      const i = pick(fixed, n), j = pick(fixed, n);
+      if(i === j) return null;
+      [out[i], out[j]] = [out[j], out[i]];
+      return out;
+    }
+    case "relocate": {
+      if(n - fixed < 2) return null;
+      const [moved] = out.splice(pick(fixed, n), 1);
+      out.splice(pick(fixed, n), 0, moved);
+      return out;
+    }
+    case "reverse": {
+      if(n - fixed < 2) return null;
+      let i = pick(fixed, n), j = pick(fixed, n);
+      if(i > j) [i, j] = [j, i];
+      if(i === j) return null;
+      out.splice(i, j - i + 1, ...out.slice(i, j + 1).reverse());
+      return out;
+    }
+    case "drop": {
+      const options = [];
+      for(let i = fixed; i < n; i++) if(!protectedAt(i)) options.push(i);
+      if(!options.length) return null;
+      out.splice(options[pick(0, options.length)], 1);
+      return out;
+    }
+    case "insert": {
+      const id = unusedRide();
+      if(!id) return null;
+      out.splice(pick(fixed, n + 1), 0, id);
+      return out;
+    }
+    case "replace": {
+      if(n - fixed < 1) return null;
+      const id = unusedRide();
+      const i = pick(fixed, n);
+      if(!id || protectedAt(i)) return null;
+      out[i] = id;
+      return out;
+    }
+    case "restaurant": {
+      if(!ctx.mealWin || !ctx.meals.length) return null;
+      const i = out.findIndex(id => ctx.byId.get(id).kind === "meal");
+      const choice = ctx.meals[pick(0, ctx.meals.length)].id;
+      if(i === -1){ out.splice(pick(fixed, n + 1), 0, choice); return out; }
+      if(i < fixed || out[i] === choice) return null;
+      out[i] = choice;
+      return out;
+    }
+  }
+  return null;
+}
+
+export function anneal(startIds, ctx, { seed = 1, maxIterations = 40000, timeLimitMs = 300, clock = () => performance.now() } = {}){
+  const rng = mulberry32(seed);
+  let current = evaluate(startIds, ctx);
+  let best = current;
+  const started = clock();
+  const T0 = 20, T1 = 0.5;
+
+  for(let i = 0; i < maxIterations; i++){
+    if((i & 255) === 0 && clock() - started > timeLimitMs) break;
+    const ids = mutate(current.ids, ctx, rng);
+    if(!ids) continue;
+    const candidate = evaluate(ids, ctx);
+    if(!candidate.valid) continue;
+    const temperature = T0 * Math.pow(T1 / T0, i / maxIterations);
+    const delta = objective(candidate) - objective(current);
+    if(!current.valid || delta >= 0 || rng() < Math.exp(delta / temperature)){
+      current = candidate;
+      if(isBetter(current, best)) best = current;
+    }
+  }
+  return best;
+}
+
+export function retime(prevIds, ctx){
+  let ids = prevIds.filter(id => ctx.byId.has(id));
+  if(ctx.lockedId) ids = [ctx.lockedId, ...ids.filter(id => id !== ctx.lockedId)];
+  let ev = evaluate(ids, ctx);
+  const keep = ctx.lockedId ? 1 : 0;
+  while(!ev.valid && ids.length > keep){
+    ids = ids.slice(0, -1);
+    ev = evaluate(ids, ctx);
+  }
+  return ev;
+}
+
+export function shouldAdopt(oldEval, newEval){
+  if(!oldEval || !oldEval.valid) return true;
+  if(!newEval.valid) return false;
+  if(newEval.mustCount !== oldEval.mustCount) return newEval.mustCount > oldEval.mustCount;
+  return newEval.score > oldEval.score && newEval.score >= oldEval.score + Math.abs(oldEval.score) * ADOPT_MARGIN;
+}
+
+function sameIds(a, b){
+  return a.length === b.length && a.every((id, i) => id === b[i]);
+}
+
+function explainChange(input, newPlan, ctx){
+  if(input.prefsChanged) return "Updated for your new settings.";
+  const prev = input.previousPlan;
+  const closed = prev.ids.find(id => !ctx.byId.has(id));
+  if(closed) return `${prev.names?.[closed] || "A ride on your plan"} closed, so your plan changed.`;
+
+  const waits = input.previousWaits || {};
+  let biggest = null;
+  for(const id of new Set([...newPlan.ids, ...prev.ids])){
+    const stop = ctx.byId.get(id);
+    if(!stop || stop.kind === "meal" || waits[id] === undefined) continue;
+    const delta = (stop.wait || 0) - waits[id];
+    if(Math.abs(delta) >= 10 && (!biggest || Math.abs(delta) > Math.abs(biggest.delta))) biggest = { stop, delta };
+  }
+  if(!biggest) return "Found a better plan with the latest waits.";
+  return biggest.delta < 0
+    ? `${biggest.stop.name} dropped to ${biggest.stop.wait} min.`
+    : `${biggest.stop.name} rose to ${biggest.stop.wait} min.`;
+}
+
+export function planDay(input){
+  let ctx = buildContext(input);
+  if(ctx.lockedId && !evaluate([ctx.lockedId], { ...ctx, mealWin: null }).valid){
+    ctx = { ...ctx, lockDropped: ctx.lockedId, lockedId: null };
+  }
+
+  // One time limit covers the whole search: annealing gets what beam search leaves.
+  const clock = input.clock || (() => performance.now());
+  const limit = input.timeLimitMs ?? 300;
+  const search = c => {
+    const started = clock();
+    const seeded = beamSearch(c, input.beamWidth ?? 200);
+    return anneal(seeded.ids, c, {
+      seed: input.seed ?? 1,
+      maxIterations: input.maxIterations ?? 40000,
+      timeLimitMs: Math.max(0, limit - (clock() - started)),
+      clock
+    });
+  };
+
+  let best = search(ctx);
+  if(!best.valid && ctx.mealWin){
+    ctx = { ...ctx, mealWin: null, mealStatus: "no-time" };
+    best = search(ctx);
+  }
+  if(!best.valid) best = evaluate([], { ...ctx, lockedId: null });
+
+  let adopted = true;
+  let reason = null;
+  if(input.previousPlan?.ids?.length && !input.force){
+    const old = retime(input.previousPlan.ids, ctx);
+    if(!shouldAdopt(old, best)){
+      best = old;
+      adopted = false;
+    }else if(!sameIds(old.ids, best.ids)){
+      reason = explainChange(input, best, ctx);
+    }
+  }
+  if(ctx.lockDropped) reason = null;
+
+  const warnings = [
+    ...ctx.mustIds.filter(id => !best.ids.includes(id)).map(id => ({ type: "must-ride-no-fit", id })),
+    ...ctx.unavailableMust.map(id => ({ type: "must-ride-unavailable", id }))
+  ];
+
+  return { plan: best, warnings, reason, adopted, mealStatus: ctx.mealStatus, lockDropped: ctx.lockDropped };
 }
