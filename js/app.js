@@ -55,6 +55,7 @@ const PARK_SLUGS = {
   "Animal Kingdom":"animal-kingdom", "Disneyland":"disneyland", "Cedar Point":"cedar-point", "Kings Island":"kings-island"
 };
 const MEAL_CANDIDATES = 12;
+const STADIA_API_KEY = "";   // optional; leave empty when the domain is registered with Stadia
 const MAP_STOPS = 6;          // next stops highlighted on the map
 
 function emptyPlanState(){
@@ -694,10 +695,12 @@ function initParkMap(){
 
   L.control.zoom({ position:"topright" }).addTo(parkMap);
 
-  // OpenStreetMap tiles need no API key; CSS darkens them to match the app.
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom:19,
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  // Stadia Maps dark tiles. Localhost needs no key; a live site registers its domain in the
+  // Stadia dashboard (no key in code), or sets STADIA_API_KEY for other setups.
+  const key = STADIA_API_KEY ? `?api_key=${encodeURIComponent(STADIA_API_KEY)}` : "";
+  L.tileLayer(`https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png${key}`, {
+    maxZoom:20,
+    attribution:'&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(parkMap);
 }
 

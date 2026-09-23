@@ -330,9 +330,10 @@ input[type=range]::-moz-range-thumb{
 .map-locate svg{width:20px;height:20px}
 
 .leaflet-container{background:var(--surface);font-family:inherit}
-/* Half-pixel overlap hides hairline gaps between tiles. */
-#liveParkMap .leaflet-tile{width:256.5px!important;height:256.5px!important}
-#liveParkMap .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.78) contrast(.8) saturate(.15)}
+/* Stadia's dark style is very subtle; lift it slightly so walkways read at a glance. */
+#liveParkMap .leaflet-tile-pane{filter:brightness(1.45) contrast(1.1)}
+/* Match the (brightened) land colour so Leaflet's hairline tile gaps don't show. */
+#liveParkMap.leaflet-container{background:#4b4e4a}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--surface-2);color:var(--text);box-shadow:0 4px 16px rgba(0,0,0,.45)}
 .leaflet-popup-content{margin:10px 14px;font-size:13px;line-height:1.45}
 .leaflet-container a.leaflet-popup-close-button{color:var(--muted)}
