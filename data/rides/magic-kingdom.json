@@ -1,0 +1,569 @@
+{
+  "f5aad2d4-a419-4384-bd9a-42f86385c750": {
+    "name": "\"it's a small world\"",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 11
+  },
+  "de737ffc-306b-4f32-8bbb-34e5d370ec8f": {
+    "name": "A Pirate's Adventure ~ Treasures of the Seven Seas",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "d9d12438-d999-4482-894b-8955fdb20ccf": {
+    "name": "Astro Orbiter",
+    "type": "spinner",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "de3309ca-97d5-4211-bffe-739fed47e92f": {
+    "name": "Big Thunder Mountain Railroad",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 40,
+    "durationMin": 4
+  },
+  "72c7343a-f7fb-4f66-95df-c91016de7338": {
+    "name": "Buzz Lightyear’s Space Ranger Spin",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 5
+  },
+  "c1f39c15-7845-46b5-b6fd-2ae368a32a37": {
+    "name": "Captain Jack’s Buccaneer Bash at Mickey’s Not-So-Scary Halloween Party",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "f010bc01-b450-4476-a5f3-a5f2813104b2": {
+    "name": "Casey Jr. Splash 'N' Soak Station",
+    "type": "play-area",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "a0613b70-293f-4a5b-8169-357be1777c62": {
+    "name": "Casey's Corner Pianist",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "9140033d-d746-464b-acad-f05f9357f0bd": {
+    "name": "Character Greetings at Mickey's Not-So-Scary Halloween Party",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "90d79335-c907-4069-a021-d0fe1ec73ae2": {
+    "name": "Cinderella Castle",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 5
+  },
+  "0f57cecf-5502-4503-8bc3-ba84d3708ace": {
+    "name": "Country Bear Musical Jamboree",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 16
+  },
+  "9221e600-6715-4b4f-b39a-00c318c00e03": {
+    "name": "Destination DescenDANCE Party at Mickey’s Not-So-Scary Halloween Party",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "f819079e-644e-4fce-bda3-26b899ac7027": {
+    "name": "Disney Adventure Friends Cavalcade",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "86c198b0-7c02-4354-814a-27ad70067d45": {
+    "name": "Disney Enchantment at Disney After Hours at Magic Kingdom",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "ee56b2f3-fd49-4a29-ae1a-2d321549a633": {
+    "name": "Disney Festival of Fantasy Parade",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "d69261dc-62b8-434c-83bd-93649b43c408": {
+    "name": "Disney Starlight: Dream the Night Away",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "05ca3e51-580b-44ca-8046-7d3e57a6d248": {
+    "name": "Disney’s Not-So-Spooky Spectacular at Mickey's Not-So-Scary Halloween Party",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "890fa430-89c0-4a3f-96c9-11597888005e": {
+    "name": "Dumbo the Flying Elephant",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "e76c93df-31af-49a5-8e2f-752c76c937c9": {
+    "name": "Enchanted Tales with Belle",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "1c708beb-41e1-43ae-8dd8-1e85075aeb38": {
+    "name": "Flag Retreat",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "22b78ed9-a692-47cb-b6a4-6d1224ff67e3": {
+    "name": "Happily Ever After",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 3,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 18
+  },
+  "2551a77d-023f-4ab1-9a19-8afec0190f39": {
+    "name": "Haunted Mansion",
+    "type": "dark-ride",
+    "thrill": 2,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 9
+  },
+  "6d74b3d9-f977-4c9b-8114-93969b51b105": {
+    "name": "Hocus Pocus Villain Spelltacular",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 25
+  },
+  "e0cd6a94-6dbe-4f52-aaa8-b3d2fdf5f2f6": {
+    "name": "Jessie’s Roundup: A Rip-Roarin’ Revue!",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "796b0a25-c51e-456e-9bb8-50a324e301b3": {
+    "name": "Jungle Cruise",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "0aae716c-af13-4439-b638-d75fb1649df3": {
+    "name": "Mad Tea Party",
+    "type": "spinner",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "51392ca4-f824-42d8-8808-8110ec8e0e22": {
+    "name": "Main Street Philharmonic at Main Street, U.S.A.",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "888fb4a4-7adf-47a1-8ba2-c258cc64fd75": {
+    "name": "Main Street Vehicles",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 5
+  },
+  "012a211b-4c91-451c-8a0e-5e3ab398eda8": {
+    "name": "Meet Ariel at Her Grotto",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "40737d3d-0ff6-4a9e-a050-beb87bf90120": {
+    "name": "Meet Cinderella and a Visiting Princess at Princess Fairytale Hall",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "166f2985-7b27-4eff-a8b3-29c3448ba198": {
+    "name": "Meet Daring Disney Pals as Circus Stars at Pete's Silly Sideshow",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "b5d6d1d1-e960-4c8f-a8a4-b9748b386b64": {
+    "name": "Meet Dashing Disney Pals as Circus Stars at Pete's Silly Sideshow",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "a74421f2-5de4-4425-bd06-8b4639b29826": {
+    "name": "Meet Festive Disney Pals at Mickey’s Not-So-Scary Halloween Party",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "947edbee-85a5-4aa0-99f3-14c7de539542": {
+    "name": "Meet Jack Skellington and Sally at Mickey's Not-So-Scary Halloween Party",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "a2d92647-634d-4eb4-886b-9da858e871f1": {
+    "name": "Meet Mickey at Town Square Theater",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "5564113f-25b4-4646-ac35-aacf983e2fd6": {
+    "name": "Meet Mickey Mouse and Minnie Mouse at Mickey's Not-So-Scary Halloween Party",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "cf4b2ba4-3626-4de7-9d07-abe8a65b1665": {
+    "name": "Meet Princess Tiana and a Visiting Princess at Princess Fairytale Hall",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "4c31b3ad-5dc9-437f-ac1a-0fdff36a2818": {
+    "name": "Mickey's Magical Friendship Faire",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "7c5e1e02-3a44-4151-9005-44066d5ba1da": {
+    "name": "Mickey's PhilharMagic",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 12
+  },
+  "5c00cd7c-b207-4d9d-9c8c-a8d418fc5425": {
+    "name": "Mickey’s Boo-To-You Halloween Parade at Mickey's Not-So-Scary Halloween Party",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "e8f0b426-7645-4ea3-8b41-b94ae7091a41": {
+    "name": "Monsters, Inc. Laugh Floor",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "86a41273-5f15-4b54-93b6-829f140e5161": {
+    "name": "Peter Pan's Flight",
+    "type": "dark-ride",
+    "thrill": 2,
+    "popularity": 3,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 3
+  },
+  "352feb94-e52e-45eb-9c92-e4b44c6b1a9d": {
+    "name": "Pirates of the Caribbean",
+    "type": "dark-ride",
+    "thrill": 2,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 9
+  },
+  "273ddb8d-e7b5-4e34-8657-1113f49262a5": {
+    "name": "Prince Charming Regal Carrousel",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "9d4d5229-7142-44b6-b4fb-528920969a2c": {
+    "name": "Seven Dwarfs Mine Train",
+    "type": "coaster",
+    "thrill": 3,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 38,
+    "durationMin": 3
+  },
+  "b2260923-9315-40fd-9c6b-44dd811dbe64": {
+    "name": "Space Mountain",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 44,
+    "durationMin": 3
+  },
+  "97c837c3-4a0f-4d52-b93c-074cf31d6f41": {
+    "name": "Stitch’s Masquerade Mashup at Mickey’s Not-So-Scary Halloween Party",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "30fe3c64-af71-4c66-a54b-aa61fd7af177": {
+    "name": "Swiss Family Treehouse",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "924a3b2c-6b4b-49e5-99d3-e9dc3f2e8a48": {
+    "name": "The Barnstormer",
+    "type": "coaster",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 35,
+    "durationMin": 1
+  },
+  "92524eb7-4ee5-4eab-936c-2eb8e6eb0ecd": {
+    "name": "The Cadaver Dans Barbershop Quartet at Mickey's Not-So-Scary Halloween Party",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "1eee22e8-1d0a-4809-a42b-df3ae55c69d5": {
+    "name": "The Dapper Dans",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "2ebfb38c-5cb5-4de1-86c0-f7af14188022": {
+    "name": "The Hall of Presidents",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 23
+  },
+  "96455de6-f4f1-403c-9391-bf8396979149": {
+    "name": "The Magic Carpets of Aladdin",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "0d94ad60-72f0-4551-83a6-ebaecdd89737": {
+    "name": "The Many Adventures of Winnie the Pooh",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 4
+  },
+  "73cb9445-0695-47a3-87ce-d08ae36b5f3c": {
+    "name": "Tiana's Bayou Adventure",
+    "type": "water",
+    "thrill": 3,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 40,
+    "durationMin": 11
+  },
+  "f163ddcd-43e1-488d-8276-2381c1db0a39": {
+    "name": "Tomorrowland Speedway",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 32,
+    "durationMin": 5
+  },
+  "ffcfeaa2-1416-4920-a1ed-543c1a1695c4": {
+    "name": "Tomorrowland Transit Authority PeopleMover",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "5a43d1a7-ad53-4d25-abfe-25625f0da304": {
+    "name": "TRON Lightcycle / Run",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "3cba0cb4-e2a6-402c-93ee-c11ffcb127ef": {
+    "name": "Under the Sea - Journey of The Little Mermaid",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 6
+  },
+  "e40ac396-cbac-43f4-8752-764ed60ccceb": {
+    "name": "Walt Disney World Railroad - Fantasyland",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "e39b831b-7731-49bb-815b-289b4f49a9fd": {
+    "name": "Walt Disney World Railroad - Main Street, U.S.A.",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "8183f3f2-1b59-4b9c-b634-6a863bdf8d84": {
+    "name": "Walt Disney's Carousel of Progress",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 21
+  },
+  "6fd1e225-53a0-4a80-a577-4bbc9a471075": {
+    "name": "Walt Disney's Enchanted Tiki Room",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 12
+  }
+}

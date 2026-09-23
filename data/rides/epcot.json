@@ -1,0 +1,524 @@
+{
+  "fb1e45fc-a2bb-4e3c-951d-3a4e2130b79d": {
+    "name": "Acrobatico!",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "3d8f8f8f-f984-4d2e-8dea-5a79432bdf05": {
+    "name": "Advanced Training Lab",
+    "type": "play-area",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "4f0df9e7-d4c1-45b5-93e2-4a7bc92547b0": {
+    "name": "American Heritage Gallery",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "482169b9-2889-4747-8aef-f9d13a37d940": {
+    "name": "Awesome Planet",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "8c8cd77d-97f6-4309-b285-42aad90e9f15": {
+    "name": "Beauty and the Beast Sing-Along",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "6f1d3b25-42c9-4e99-9dce-6c20d7a5deea": {
+    "name": "Bijutsu-kan Gallery",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "2ecc4fff-2994-476f-9926-24a4af173838": {
+    "name": "Bruce's Shark World",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "61fb49f8-e62f-4e1c-ae0e-8ab9929037bc": {
+    "name": "Canada Far and Wide in Circle-Vision 360",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 14
+  },
+  "e48629ab-939f-4fe0-9e6a-6ad29b8added": {
+    "name": "Command Performance",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "35ed719b-f7f0-488f-8346-4fbf8055d373": {
+    "name": "Disney and Pixar Short Film Festival",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "d6bb186c-382f-4ae6-bc76-fde8f141ed69": {
+    "name": "Eat to the Beat Concert Series Presented by Enterprise® at EPCOT International Food & Wine Festival",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "6e70f3fb-faab-41b1-8d26-b85d1c5cfa26": {
+    "name": "Entertainment at Canada Mill Stage",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "8e1a9a60-9311-4f79-b6a8-1b5172e4f7c9": {
+    "name": "Entertainment at Germany Gazebo",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "8d7ccdb1-a22b-4e26-8dc8-65b1938ed5f0": {
+    "name": "Frozen Ever After",
+    "type": "water",
+    "thrill": 2,
+    "popularity": 3,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 5
+  },
+  "07dbeaea-85fa-45f2-872f-02f9e7510419": {
+    "name": "Gallery of Arts and History",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "0e35a7a2-c2cd-451b-88e2-afc9d370e69e": {
+    "name": "Garden Rocks Concert Series at EPCOT International Flower & Garden Festival",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "0c7097cb-8b29-4257-9e9a-a11ed59ceb46": {
+    "name": "GoofyCore at CommuniCore Hall",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "22f48b73-01df-460e-8969-9eb2b4ae836c": {
+    "name": "Gran Fiesta Tour Starring The Three Caballeros",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 8
+  },
+  "e3549451-b284-453d-9c31-e3b1207abd79": {
+    "name": "Guardians of the Galaxy: Cosmic Rewind",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 42,
+    "durationMin": 3
+  },
+  "0f40274d-420a-425a-9377-29fd6e49484f": {
+    "name": "House of the Whispering Willows",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "3e5f26ee-c02d-47fd-891e-5e4479073444": {
+    "name": "ImageWorks - The \"What If\" Labs",
+    "type": "play-area",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "00666fe9-7774-4b53-9fb7-3d333f8aa503": {
+    "name": "Impressions de France",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 18
+  },
+  "3beaa9a5-6404-4446-bfd1-e0d0eea65e85": {
+    "name": "JAMMitors",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "75449e85-c410-4cef-a368-9d2ea5d52b58": {
+    "name": "Journey Into Imagination With Figment",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 6
+  },
+  "dae68dee-dfba-4128-b594-6aa12add1070": {
+    "name": "Journey of Water, Inspired by Moana",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "3ace01d1-15fc-4fbb-99e4-81a696cb2d05": {
+    "name": "Kidcot Fun Stops",
+    "type": "play-area",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "8f353879-d6ac-4211-9352-4029efb47c18": {
+    "name": "Living with the Land",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 14
+  },
+  "3dbf1ff2-eee0-44a9-8cd9-22bf920e81e9": {
+    "name": "Luminous The Symphony of Us",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 3,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 18
+  },
+  "ea730d0c-7723-429d-89a4-9e76f053f5ac": {
+    "name": "Mariachi Cobre",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "76eadac1-cdfa-45e5-a25c-54ed4c3a604f": {
+    "name": "Marimba de las Américas",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "296d164a-8b9a-49d3-a285-637b86731260": {
+    "name": "Matsuriza",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "33bd3bad-6803-4c5e-97ac-f7e31261a604": {
+    "name": "Meet Anna and Elsa at Royal Sommerhus",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "99087d9a-4380-4ab6-b088-20816e233c6f": {
+    "name": "Meet Asha Near World Showcase Plaza",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "67612787-fbd3-44b7-869f-123f55d78584": {
+    "name": "Meet Beloved Disney Pals at Mickey & Friends",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "5d3bdec3-8484-4aca-b192-e9735a41a316": {
+    "name": "Meet Donald Duck in Mexico",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "a70b81bf-2934-433c-9723-afb2f24112bf": {
+    "name": "Meet Figment Inside ImageWorks",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "7b79e739-c540-4ea5-a4c8-f8d8bac5719b": {
+    "name": "Meet Mulan in China",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "2ebce841-be26-42e3-a552-393dc995cfe8": {
+    "name": "Meet Pluto Near EPCOT Main Entrance",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "e9c1bff6-c9c1-4275-8f3d-44226f0fdfbb": {
+    "name": "Meet Princess Aurora in France",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "8f8746cb-c714-4c60-848d-e2dc4e6f586b": {
+    "name": "Mexico Folk Art Gallery",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "5b6475ad-4e9a-4793-b841-501aa382c9c0": {
+    "name": "Mission: SPACE",
+    "type": "simulator",
+    "thrill": 4,
+    "popularity": 2,
+    "kidFriendly": false,
+    "minHeightIn": 40,
+    "durationMin": 5
+  },
+  "18c533d6-a395-4ae4-9488-80fce9c497fe": {
+    "name": "Palais du Cinéma",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 18
+  },
+  "9053240b-7f7f-44fe-970b-bd7956cd5d4f": {
+    "name": "Project Tomorrow: Inventing the Wonders of the Future",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "ee070d46-6a64-41c0-9f12-69dcfcca10a0": {
+    "name": "Reflections of China",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 14
+  },
+  "1e735ffb-4868-47f1-b2cd-2ac1156cd5f0": {
+    "name": "Remy's Ratatouille Adventure",
+    "type": "dark-ride",
+    "thrill": 2,
+    "popularity": 3,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 5
+  },
+  "41aba635-48e4-43bf-9bb1-3b811b5705d0": {
+    "name": "Rose & Crown Pub Musician",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "7969166f-feef-4350-b26e-6a6c745528f4": {
+    "name": "SeaBase Aquarium",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "83fed9d1-c25f-497c-ab8e-21e4dd7ce655": {
+    "name": "Sergio",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "81b15dfd-cf6a-466f-be59-3dd65d2a2807": {
+    "name": "Soarin' Across America",
+    "type": "simulator",
+    "thrill": 3,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 40,
+    "durationMin": 5
+  },
+  "480fde8f-fe58-4bfb-b3ab-052a39d4db7c": {
+    "name": "Spaceship Earth",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 16
+  },
+  "66ff36de-9cb3-4d9a-b891-1665d19ffb3e": {
+    "name": "Stave Church Gallery",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "37ae57c5-feaf-4e47-8f27-4b385be200f0": {
+    "name": "Test Track",
+    "type": "dark-ride",
+    "thrill": 3,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 40,
+    "durationMin": 5
+  },
+  "1f542745-cda1-4786-a536-5fff373e5964": {
+    "name": "The American Adventure",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 30
+  },
+  "fb076275-0570-4d62-b2a9-4d6515130fa3": {
+    "name": "The Seas with Nemo & Friends",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 5
+  },
+  "57acb522-a6fc-4aa4-a80e-21f21f317250": {
+    "name": "Turtle Talk With Crush",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "001b099f-4db8-4843-8c1e-852e0e8fc2df": {
+    "name": "Viva Mexico",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "c5f6c7e4-d5cd-4d71-8e02-57d8bb43b3ba": {
+    "name": "Voices of Liberty",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "fd8afd63-0cb5-4f77-b47b-fb277f12d9f8": {
+    "name": "¡Celebración Encanto!",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  }
+}

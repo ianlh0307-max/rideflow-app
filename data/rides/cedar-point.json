@@ -1,0 +1,875 @@
+{
+  "a55dd586-a9c6-47b7-8374-13edcfbc7b47": {
+    "name": "4x4's",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "35a82b2b-e2ce-4533-8c2a-0058ff769ceb": {
+    "name": "Atomic Scrambler",
+    "type": "spinner",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 42,
+    "durationMin": 2
+  },
+  "6c5a1190-ed1e-4ca4-b2b5-b4af21f8232e": {
+    "name": "Balloon Race",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "b24e30f3-268b-4e52-9163-d8b6606e5496": {
+    "name": "Bands in Residence",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "24cd89d2-a98d-4e1c-a9ef-5783bace561c": {
+    "name": "Bands in Residence - Sand Bar Stage",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "08bd537d-b1ab-4447-8079-5127b8f89968": {
+    "name": "Blue Streak",
+    "type": "coaster",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "5d8f0d63-1d28-462f-af4d-d9b415b30fa5": {
+    "name": "Butchers of Rock",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "54e04865-9669-4e06-81f5-a3102ebb85d1": {
+    "name": "Cadillac Cars",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "ecab51a8-b687-4b3c-8327-7db2949f5aca": {
+    "name": "Calypso",
+    "type": "spinner",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 42,
+    "durationMin": 2
+  },
+  "411f4711-3078-46e7-9370-a2f1ad96c19d": {
+    "name": "Camp Bus",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "f49055da-55f8-4dbd-875a-104b1b278dc1": {
+    "name": "Cedar Creek Mine Ride",
+    "type": "coaster",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 3
+  },
+  "637c4a8c-69fe-4aa9-bc32-35273bfc31f9": {
+    "name": "Cedar Downs Racing Derby",
+    "type": "spinner",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 3
+  },
+  "6c3a6bf2-fcb5-44c7-8ba0-265825b07a23": {
+    "name": "Cedar Point & Lake Erie Railroad",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "478d55c1-7b99-432b-88a5-09b7af413faa": {
+    "name": "Cedar Point and Lake Erie Railroad - Frontier",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "da68ef7b-d901-4e26-a59e-44a1b66d56ee": {
+    "name": "Character Appearances",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "8a14a7f4-be38-44ca-b1ae-50f9e396900b": {
+    "name": "Character Appearances - Camp Spooky",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "e4a70e0f-23c4-4131-a45d-ebca8285b156": {
+    "name": "Character Appearances - Planet Snoopy",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "9528c96c-4926-43ba-b16b-8476c1e427d9": {
+    "name": "Charlie Brown's Wind-Up",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "d59e6e83-e504-4cf3-bc48-b7efa3469259": {
+    "name": "Clownz: Hall of Infamy Tour",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "5ac63397-233b-49a8-9221-ca8516cbdd72": {
+    "name": "Corkscrew",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "04b7a9ca-445b-4653-bc5b-486301e09563": {
+    "name": "CornStalkers 2.0: Revenge of the Pumpkin Heads",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "5ed2473d-83f2-4122-8186-f8d3b947badc": {
+    "name": "Crystal Rock Massacre",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "77b4fc26-e729-461d-adf1-6c924bd9fdda": {
+    "name": "Cut Throat Cove",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "3fb3c01d-ed5e-4e48-8abf-14d872985e95": {
+    "name": "DIABLO: The Infernal Path",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "d90bd2bf-a9b6-4af9-b2c3-5640e1155eb2": {
+    "name": "Dodgem",
+    "type": "spinner",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 3
+  },
+  "50975ea1-59ee-4c3d-8d71-5d596af12593": {
+    "name": "Dune Buggies",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "09f2b095-12b2-489e-8465-0ea7018e4340": {
+    "name": "Fangs: Eternal",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "9f533061-a2f4-4ab3-afbd-c58311447974": {
+    "name": "Fearground Freak Show",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "8ebe1714-c397-4535-ad8c-fcd5986ed976": {
+    "name": "Flying Ace Balloon Race",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "a6a6566e-ce0e-4273-a190-93cd0fee8d26": {
+    "name": "GateKeeper",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 3
+  },
+  "0a05bbfe-71b5-4648-b6c0-6090a8f0251d": {
+    "name": "Gemini",
+    "type": "coaster",
+    "thrill": 3,
+    "popularity": 2,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "d84216ba-b697-4881-b329-2c137bfa3bc4": {
+    "name": "Giant Wheel",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 8
+  },
+  "d661e64d-398d-43a9-8e0a-4b6f3c3eea81": {
+    "name": "Helicopters",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "967f22f0-861b-406d-8ad1-58007fa518f3": {
+    "name": "Hoots & Hollers Comedy Club",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "06ad96ee-821e-45b0-884b-a7846694d3eb": {
+    "name": "Iron Dragon",
+    "type": "coaster",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "f9cdf271-f802-4edb-8956-33bc0ac270b1": {
+    "name": "Joe Cool's Dodgem School",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "fd87a2d4-a1a5-467b-838c-6fa16e2b7d40": {
+    "name": "Kiddy Kingdom Carousel",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "9420f27c-bf89-42c8-bcb9-25815042eeaa": {
+    "name": "Kids Costume Contest",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "d1deb0c0-0382-456c-ba65-c2870a72910f": {
+    "name": "Kite Eating Tree",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "55ecf9a5-1a56-4c7f-8d4d-f76906e19feb": {
+    "name": "Lake Erie Eagles",
+    "type": "spinner",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "00b2d271-39f5-436e-9420-205cd1753410": {
+    "name": "Linus' Beetle Bugs",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "b7ee86e4-3a4d-41ba-88a4-b90e89bb7a4f": {
+    "name": "Magnum XL-200",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 2,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "10b72e85-0d2c-42c7-8f17-97a341fb074b": {
+    "name": "Matterhorn",
+    "type": "spinner",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "fce124b9-ce09-4b24-8c97-0876240369ba": {
+    "name": "Maverick",
+    "type": "coaster",
+    "thrill": 5,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 2
+  },
+  "299049b0-2009-4df1-a1df-cf0ba15cca3a": {
+    "name": "maXair",
+    "type": "spinner",
+    "thrill": 4,
+    "popularity": 2,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 2
+  },
+  "2cc54c4f-1628-4dd3-beff-1d509c085e27": {
+    "name": "Midnight",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "cb176916-af2d-4737-9f19-e6a3eab67e0c": {
+    "name": "Midnight",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "75ecd8eb-282d-4290-a2ff-7bd71f1ca707": {
+    "name": "Midnight’s Mythmakers",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "078d0342-d11c-4573-8706-11dc8ee359ab": {
+    "name": "Midway Carousel",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "20cbeb30-b997-4a50-a950-ea26a3a13c3a": {
+    "name": "Millennium Force",
+    "type": "coaster",
+    "thrill": 5,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 3
+  },
+  "c7e98665-1680-4b69-9ff2-3da3f5cc6e76": {
+    "name": "Motorcycles",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "5f3508d3-9fd0-49e4-8b25-2f6899975c3b": {
+    "name": "Mustangs",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "9c85f228-e39d-4ee7-9d31-c1f9c0e7dab2": {
+    "name": "Ocean Motion",
+    "type": "spinner",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 42,
+    "durationMin": 2
+  },
+  "300f1de3-b0d2-468f-8942-e22a22a60acd": {
+    "name": "Opening SCARYmoanies",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "9f1e1425-55b0-4055-8c66-f5a72657e429": {
+    "name": "Peanuts 500",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "5ae9d725-5eb5-4e27-ad65-cc2316e27970": {
+    "name": "Peanuts Road Rally",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "4646d8c3-f17d-4312-9496-bb21b090e5bd": {
+    "name": "Pipe Scream",
+    "type": "coaster",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "ad4ffecf-dfd0-412c-9172-461fac78878e": {
+    "name": "Police Cars",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "348681f2-6fcd-48d3-99d9-b6c379b19615": {
+    "name": "Power Tower",
+    "type": "spinner",
+    "thrill": 4,
+    "popularity": 2,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 1
+  },
+  "99e68849-fbc9-4a84-8ba3-d844ea4d396e": {
+    "name": "Power Tower Shot",
+    "type": "spinner",
+    "thrill": 4,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 1
+  },
+  "c804385c-77dd-43b9-9036-49b55840e9f1": {
+    "name": "Raptor",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 2,
+    "kidFriendly": false,
+    "minHeightIn": 54,
+    "durationMin": 2
+  },
+  "6310d0ce-64c8-43a8-8ce3-32cf2474d529": {
+    "name": "Red Baron",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "95922db5-0636-4b33-b1dd-53a765d81472": {
+    "name": "Rock, Spin & Turn",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "eeefefc4-84ce-426e-9481-14bf2320b93d": {
+    "name": "Roto Whip",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "59bf7089-f9e3-4759-8e3a-1be8995bcdc9": {
+    "name": "Rougarou",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 2,
+    "kidFriendly": false,
+    "minHeightIn": 54,
+    "durationMin": 3
+  },
+  "6b19e44d-8bc7-48a0-bb3f-60f1ca07c33a": {
+    "name": "Siren's Curse",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "2285e910-591e-4716-bd7d-c4103842f2a3": {
+    "name": "Skeleton Crew",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "6ce77f65-eccf-4d63-9510-5b52c47c4245": {
+    "name": "Skeleton Stilt Walkers",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "daf0f64f-a222-4e12-b4a6-ef2ec5430e16": {
+    "name": "Sky Fighters",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "08f21cb0-8c20-4dd3-9127-57acefbc633c": {
+    "name": "Sky Ride",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 8
+  },
+  "70d20850-d07f-4988-9f38-42b9984ca64c": {
+    "name": "Sky Ride West",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 8
+  },
+  "c8d7cc1f-a9aa-42db-bb32-5fe4ffc1386f": {
+    "name": "Skyhawk",
+    "type": "spinner",
+    "thrill": 4,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 2
+  },
+  "eff4ecc6-1caa-4773-bcb7-0429ff7d3b1b": {
+    "name": "Slaughter House",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "b025685a-2171-4c29-968a-fc1bac970bef": {
+    "name": "SlingShot",
+    "type": "spinner",
+    "thrill": 5,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 2
+  },
+  "583ee3a0-c234-4df2-b649-7a3a575339b4": {
+    "name": "Snoopy's Deep Sea Divers",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "0dbcc893-a0b6-4a93-8607-cf59c008878c": {
+    "name": "Snoopy's Express Railroad",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 4
+  },
+  "a3748d20-dd3b-4ff9-bc18-7f78c1dc7eb0": {
+    "name": "Snoopy's Space Race",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "3436c861-194b-495f-91a0-f7afb1cef326": {
+    "name": "Snoopy's Tricks and Treats Adventure",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "bedde365-86fe-4734-aa9e-c75b51f32555": {
+    "name": "Space Age",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "ad5a9fa8-2f1c-42f1-8d44-90a4408206df": {
+    "name": "Steel Vengeance",
+    "type": "coaster",
+    "thrill": 5,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 3
+  },
+  "8924ae6c-7b4a-4401-80f7-d7e170957ba4": {
+    "name": "Super Himalaya",
+    "type": "spinner",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 42,
+    "durationMin": 3
+  },
+  "68eeab15-8da3-497b-a55f-a85362499f5e": {
+    "name": "The Haunting of Eerie Estate",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "f8c240f7-ff17-49bf-ab67-e81bf8a3344f": {
+    "name": "The Shrieks! Contamination",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "0adb8cbf-3915-47e2-8ae5-931efc7663b8": {
+    "name": "The SKA-letons!",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "e9106c87-8015-40bc-8782-0e7186ede5e5": {
+    "name": "Thunder Canyon",
+    "type": "water",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 46,
+    "durationMin": 6
+  },
+  "a4e56084-3e2e-46d1-b267-a9215e1e9e26": {
+    "name": "Tombstone Terrortory: Doc McCoffer's Evil Elixir",
+    "type": "walkthrough",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "1c387975-4b3c-4acb-9d75-42a1137e6d9b": {
+    "name": "Top Thrill 2",
+    "type": "coaster",
+    "thrill": 5,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 1
+  },
+  "106bc022-67e9-4ee1-95d0-cf917976e652": {
+    "name": "Troika",
+    "type": "spinner",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "867fb521-ae2c-4ec9-8077-487888bcd142": {
+    "name": "Valravn",
+    "type": "coaster",
+    "thrill": 5,
+    "popularity": 2,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 2
+  },
+  "28650ffe-5932-477d-94fb-518dd3702c68": {
+    "name": "Wake the Dead - Til Death Do Us Part",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "345afe0b-853b-43ad-832a-733f6b4081dd": {
+    "name": "Wave Swinger",
+    "type": "spinner",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "a5dc8e5f-ec8b-4cb1-8e09-d0f94ea9111d": {
+    "name": "Wild Mouse",
+    "type": "coaster",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 48,
+    "durationMin": 2
+  },
+  "152c987e-fb88-430f-ade0-47fc9ad59cb5": {
+    "name": "Wilderness Run",
+    "type": "coaster",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 36,
+    "durationMin": 1
+  },
+  "a596f425-a8ad-4d60-8b8e-47995d797379": {
+    "name": "WindSeeker",
+    "type": "spinner",
+    "thrill": 3,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 52,
+    "durationMin": 3
+  },
+  "10464f65-76f6-4d23-9192-1a43ba8d88d8": {
+    "name": "Woodstock Express",
+    "type": "coaster",
+    "thrill": 2,
+    "popularity": 1,
+    "kidFriendly": false,
+    "minHeightIn": 36,
+    "durationMin": 1
+  },
+  "961414b3-c713-4b9a-8e07-2e7180b073e1": {
+    "name": "Woodstock's Airmail",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  },
+  "a1ea7e79-59ba-47ab-ad52-1f788850d097": {
+    "name": "Woodstock's Whirlybirds",
+    "type": "spinner",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 2
+  }
+}

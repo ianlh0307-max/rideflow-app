@@ -1,0 +1,281 @@
+{
+  "b81bf8f4-3d43-47eb-8e27-9e6156112167": {
+    "name": "Adventures with Kevin on Discovery Island",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "6fbe6d02-4057-43bb-80a3-047b1e8a50ca": {
+    "name": "Animal Care at Conservation Station",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "93d3c183-737f-4e26-98f9-b18a3e190393": {
+    "name": "Animal Encounters: Winged Encounters – The Kingdom Takes Flight",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "24cf863c-b6ba-4826-a056-0b698989cbf7": {
+    "name": "Avatar Flight of Passage",
+    "type": "simulator",
+    "thrill": 4,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 44,
+    "durationMin": 5
+  },
+  "52be1d78-e0b4-433f-b1ce-0be4f7053813": {
+    "name": "Beats and Strings",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "d5dfc051-f951-40ac-8774-3e9961331ab9": {
+    "name": "Bluey's Wild World at Conservation Station",
+    "type": "play-area",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "4d27b0d7-2b0a-4569-90fa-e79f117ec7ef": {
+    "name": "Discovery Island Trails",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "a08d9f84-fbdf-45f3-9b68-645d296de307": {
+    "name": "DiVine",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "f7830bfd-3d25-4ba2-8021-b0d429ef0193": {
+    "name": "Eco-Rhythmics",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "64a6915f-a835-4226-ba5c-8389fc4cade3": {
+    "name": "Expedition Everest - Legend of the Forbidden Mountain",
+    "type": "coaster",
+    "thrill": 4,
+    "popularity": 3,
+    "kidFriendly": false,
+    "minHeightIn": 44,
+    "durationMin": 3
+  },
+  "d8214ba6-22a7-4a92-8977-bae3779d5c4c": {
+    "name": "Feathered Friends in Flight!",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 25
+  },
+  "3a4e0f49-f9ff-4481-a95b-d4952cdf6097": {
+    "name": "Festival of the Lion King",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 3,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 30
+  },
+  "95712b31-ceed-4f7d-be3e-3d5e6badac5c": {
+    "name": "Finding Nemo: The Big Blue... and Beyond!",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 25
+  },
+  "e7976e25-4322-4587-8ded-fb1d9dcbb83c": {
+    "name": "Gorilla Falls Exploration Trail",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "a8781403-1344-4c06-89ef-b7a39b99ae59": {
+    "name": "Harambe Village Street Band – Burudika",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "d58d9262-ec95-4161-80a0-07ca43b2f5f3": {
+    "name": "Kali River Rapids",
+    "type": "water",
+    "thrill": 3,
+    "popularity": 2,
+    "kidFriendly": false,
+    "minHeightIn": 38,
+    "durationMin": 6
+  },
+  "32e01181-9a5f-4936-8a77-0dace1de836c": {
+    "name": "Kilimanjaro Safaris",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 3,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "dd142c0b-622a-4b44-8e22-c0facb2b20a8": {
+    "name": "Kora Tinga Tinga",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "1a8ea967-229a-42a0-8290-59b036c84e14": {
+    "name": "Maharajah Jungle Trek",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "13d7c9d1-a785-403d-9ba8-71fee2f02d55": {
+    "name": "Meet Favorite Disney Pals at Adventurers Outpost",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "f526f3ab-190b-4576-8c79-e2968d171b4e": {
+    "name": "Meet Moana at Character Landing",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "7a5af3b7-9bc1-4962-92d0-3ea9c9ce35f0": {
+    "name": "Na'vi River Journey",
+    "type": "dark-ride",
+    "thrill": 1,
+    "popularity": 3,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 5
+  },
+  "d8497541-53a2-4206-b95f-39cb238ae511": {
+    "name": "Tam Tam Drummers of Harambe",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "bc997600-fcc0-4f6f-b908-a1419b26cfd8": {
+    "name": "The Oasis Exhibits",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "bc1ffa86-9b1a-4ce9-84a5-b479dfa3cb53": {
+    "name": "Tree of Life",
+    "type": "walkthrough",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 10
+  },
+  "2a55aee6-c87a-4bda-a3d4-b022693a62a3": {
+    "name": "Tree of Life Awakenings",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 5
+  },
+  "a349429a-5ef8-41c4-9a28-84ed4f7a0465": {
+    "name": "Viva Gaia Street Band!",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "6ef1b126-5b0b-46a1-8608-4fcf98ab92c8": {
+    "name": "Wilderness Explorers",
+    "type": "play-area",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 15
+  },
+  "4f391f0e-52be-4f9d-99d6-b3ae0373b43c": {
+    "name": "Wildlife Express Train",
+    "type": "transport",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 7
+  },
+  "fdf62904-8125-4735-81ae-8648dd607399": {
+    "name": "Zoogether Day Gathering Spot",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 1,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 20
+  },
+  "1b15c77b-0311-4171-8e59-7f38e6d60754": {
+    "name": "Zootopia: Better Zoogether!",
+    "type": "show",
+    "thrill": 1,
+    "popularity": 2,
+    "kidFriendly": true,
+    "minHeightIn": null,
+    "durationMin": 12
+  }
+}
