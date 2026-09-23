@@ -454,7 +454,8 @@ export function planDay(input){
   let reason = null;
   if(input.previousPlan?.ids?.length && !input.force){
     const old = retime(input.previousPlan.ids, ctx);
-    if(!shouldAdopt(old, best)){
+    // A settings change is the guest asking for a new plan, so stability doesn't apply.
+    if(!input.prefsChanged && !shouldAdopt(old, best)){
       best = old;
       adopted = false;
     }else if(!sameIds(old.ids, best.ids)){

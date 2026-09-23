@@ -138,3 +138,14 @@ test("a locked stop that no longer fits unlocks quietly (not 'closed')", () => {
   assertEqual(r.lockDropped, null);
   assert(r.plan.valid && r.plan.ids[0] !== "slow");
 });
+
+test("a settings change always re-plans for the new settings and says so", () => {
+  // Regression: the 3% stability rule kept the old plan after the guest changed a setting.
+  // At 689 m the "near" plan beats "far" by only ~1% under Minimize walking, inside the 3% margin.
+  const park = () => makePark([ride("near", 100, 0, { thrill:3, popularity:1 }), ride("far", 689, 0, { thrill:3, popularity:2 })]);
+  const oldPlan = planDay(baseInput(park(), { budgetEnd: 540 + 30, prefs:{ walking:"max" } })).plan;
+  assertEqual(oldPlan.ids, ["far"]);
+  const r = planDay(baseInput(park(), { budgetEnd: 540 + 30, prefs:{ walking:"low" }, prefsChanged: true, previousPlan:{ ids: oldPlan.ids, names:{} } }));
+  assertEqual(r.plan.ids, ["near"]);
+  assertEqual(r.reason, "Updated for your new settings.");
+});

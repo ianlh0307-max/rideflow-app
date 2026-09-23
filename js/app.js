@@ -60,12 +60,6 @@ function emptyPlanState(){
 
 const planner = createPlannerClient();
 
-const PREF_LABELS = {
-  thrill: { balanced:"Balanced", easy:"Family friendly", extreme:"Big thrills" },
-  walking: { balanced:"Balanced route", low:"Minimize walking", max:"Max rides" },
-  food: { "eat-late":"Eat later", "eat-early":"Eat early", "skip-food":"Not eating in the park" }
-};
-
 const GROUP_LABELS = { Thrill:"Thrill rides", Kids:"Kids and family", Shows:"Shows", Food:"Dining", Other:"Other rides" };
 
 const CHECK_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -88,6 +82,23 @@ function renderStep(){
   const next = document.getElementById("obNext");
   next.textContent = obStep === obSteps.length - 1 ? "Build my route" : "Continue";
   next.disabled = obStep === 0 && !selectedPark;
+
+  document.getElementById("locationNote").classList.toggle("hidden", obStep !== obSteps.length - 1);
+  if(obStep === 2) updateEndTimeNote();
+}
+
+function updateEndTimeNote(){
+  const note = document.getElementById("endTimeNote");
+  if(!parkDate){
+    note.textContent = "";
+    parkMetaReady?.then(updateEndTimeNote);
+    return;
+  }
+  const hours = Number(document.getElementById("parkTimeVal").textContent);
+  const end = parkNow() + hours * 60;
+  note.textContent = parkCloseMin !== null && end > parkCloseMin
+    ? `${selectedPark} closes at ${minutesToClock(parkCloseMin)}, so your plan ends then.`
+    : `Until about ${minutesToClock(end)}`;
 }
 
 document.getElementById("obNext").addEventListener("click", () => {
@@ -134,6 +145,7 @@ document.querySelectorAll("#onboarding input[type=range]").forEach(input => {
     if(unit) unit.textContent = input.value === "1" ? input.dataset.one : input.dataset.many;
     const fill = (input.value - input.min) / (input.max - input.min) * 100;
     input.style.setProperty("--fill", fill + "%");
+    if(input.dataset.output === "parkTimeVal") updateEndTimeNote();
   };
 
   input.addEventListener("input", paint);
@@ -220,11 +232,36 @@ function centerOnMe(){
 function renderSettings(){
   document.getElementById("settingsPark").textContent = selectedPark;
   document.getElementById("settingsGroup").textContent = userPrefs.groupSize === 1 ? "1 person" : `${userPrefs.groupSize} people`;
-  document.getElementById("settingsHours").textContent = `${userPrefs.parkHours} hours`;
-  document.getElementById("settingsThrill").textContent = PREF_LABELS.thrill[userPrefs.thrill];
-  document.getElementById("settingsWalk").textContent = PREF_LABELS.walking[userPrefs.walking];
-  document.getElementById("settingsFood").textContent = PREF_LABELS.food[userFoodPlan];
+
+  const hours = document.getElementById("settingsHours");
+  hours.value = userPrefs.parkHours;
+  hours.style.setProperty("--fill", ((hours.value - hours.min) / (hours.max - hours.min) * 100) + "%");
+  const endText = planStartMin !== null ? ` · until ${minutesToClock(budgetEndMin())}` : "";
+  document.getElementById("settingsHoursOut").textContent = `${userPrefs.parkHours} hours${endText}`;
+
+  document.querySelectorAll(".segmented").forEach(group => {
+    const value = group.dataset.setting === "food" ? userFoodPlan : userPrefs[group.dataset.setting];
+    group.querySelectorAll("button").forEach(b => b.classList.toggle("selected", b.dataset.value === value));
+  });
 }
+
+document.querySelectorAll(".segmented").forEach(group => {
+  group.addEventListener("click", e => {
+    const button = e.target.closest("button[data-value]");
+    if(!button) return;
+    if(group.dataset.setting === "food") userFoodPlan = button.dataset.value;
+    else userPrefs[group.dataset.setting] = button.dataset.value;
+    renderSettings();
+    requestPlan({ prefsChanged:true });
+  });
+});
+
+const settingsHours = document.getElementById("settingsHours");
+settingsHours.addEventListener("input", () => {
+  userPrefs.parkHours = Number(settingsHours.value);
+  renderSettings();
+});
+settingsHours.addEventListener("change", () => requestPlan({ prefsChanged:true }));
 
 /* ---------- Park time and data ---------- */
 function parkNow(){
@@ -535,20 +572,13 @@ function estimateFoodDelay(restaurant){
   return Math.round(Math.max(5, delay) / 5) * 5;
 }
 
-function calculateTimeSaved(openRides){
-  if(!openRides.length) return "0.0";
-
-  const allAvgWait = latestRides
-    .filter(r => r.name && !completedRideKeys.includes(rideKey(r)))
-    .reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, latestRides.filter(r => r.is_open).length);
-
-  const routeAvgWait = openRides
-    .slice(0,8)
-    .reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, openRides.slice(0,8).length);
-
-  const savedMinutes = Math.max(0, (allAvgWait - routeAvgWait) * userPrefs.parkHours * 1.8);
-
-  return Math.max(0.3, savedMinutes / 60).toFixed(1);
+// Wait + walk per ride vs a "nearest ride next" day, times the rides you'll do.
+function calculateTimeSaved(){
+  const s = planState.summary, b = planState.baseline;
+  if(!s?.rides || !b?.rides) return "0.0";
+  const planPerRide = (s.waitMin + s.walkMin) / s.rides;
+  const basePerRide = b.waitWalkMin / b.rides;
+  return (Math.max(0, (basePerRide - planPerRide) * s.rides) / 60).toFixed(1);
 }
 
 function calculateRouteQuality(openRides){
@@ -901,15 +931,29 @@ function updateNavigationMode(stops, anyOpen){
   const current = stops[0];
   const next = stops[1];
 
+  const meta = document.getElementById("nextMeta");
+  const reasonEl = document.getElementById("planReason");
+  const lockedName = planState.lockDropped && latestRides.find(r => rideKey(r) === planState.lockDropped)?.name;
+  const reasonText = lockedName ? `${lockedName} is temporarily closed.` : planState.reason;
+  reasonEl.textContent = reasonText || "";
+  reasonEl.classList.toggle("hidden", !reasonText);
+  renderWarnings();
+
   if(!current){
     check.classList.add("hidden");
     wait.textContent = "";
+    meta.textContent = "";
+    const outOfTime = planStartMin !== null && budgetEndMin() - parkNow() < 15;
 
     if(!anyOpen){
       label.textContent = "Park closed";
       main.textContent = `${selectedPark} is closed right now`;
       sub.textContent = "No rides are reporting live waits. Your route builds automatically once rides open, or you can pick another park in Settings.";
-    } else {
+    }else if(outOfTime){
+      label.textContent = "Time's up";
+      main.textContent = "Not enough time left for another ride";
+      sub.textContent = "Add time in Settings to keep planning.";
+    }else{
       label.textContent = "Route complete";
       main.textContent = "You’ve cleared your route";
       sub.textContent = "Every open ride on your list is done. Star more rides below to keep going.";
@@ -932,6 +976,24 @@ function updateNavigationMode(stops, anyOpen){
     wait.className = "next-wait " + waitClass(current.wait_time);
     wait.innerHTML = current.wait_time > 0 ? `${current.wait_time}<span class="unit">min</span>` : `<span class="no-wait">No wait</span>`;
   }
+
+  const walk = Math.max(1, Math.round(current.walkMin || 0));
+  const waitPart = current.type === "food"
+    ? `about ${estimateFoodDelay(current)} min in line`
+    : current.type === "show" ? `starts ${minutesToClock(current.start)}`
+    : current.wait_time > 0 ? `${current.wait_time} min wait` : "no wait";
+  meta.textContent = `${walk} min walk · ${waitPart}`;
+}
+
+function renderWarnings(){
+  const el = document.getElementById("planWarnings");
+  const nameOf = id => latestRides.find(r => rideKey(r) === id)?.name || "A must-ride";
+  const remaining = formatDuration(Math.max(0, budgetEndMin() - parkNow()));
+  el.innerHTML = planState.warnings.map(w => w.type === "must-ride-no-fit"
+    ? `<p class="plan-warning">${esc(nameOf(w.id))} doesn’t fit in your remaining ${remaining}.<button type="button" onclick="showScreen('settings', document.querySelectorAll('.nav button')[2])">Add time</button></p>`
+    : `<p class="plan-warning">${esc(nameOf(w.id))} is closed right now.</p>`
+  ).join("");
+  el.classList.toggle("hidden", !planState.warnings.length);
 }
 
 function updateRouteConfidence(stops){
@@ -961,7 +1023,7 @@ function updateTrustLayer(stops, anyOpen){
   if(!anyOpen){
     message = "No rides are running right now";
   } else if(!routeRides.length){
-    message = "Route complete";
+    message = planStartMin !== null && budgetEndMin() - parkNow() < 15 ? "No time left in your plan" : "Route complete";
   } else {
     const parkAvg = allOpen.reduce((sum,r)=>sum+r.wait_time,0) / allOpen.length;
     const routeAvg = routeRides.reduce((sum,r)=>sum+r.wait_time,0) / routeRides.length;
@@ -988,6 +1050,7 @@ function renderRouteList(stops, anyOpen){
 
   if(!stops.length){
     el.innerHTML = `<p class="empty">${anyOpen ? "Nothing left on your route." : "Your route will appear here when rides open."}</p>`;
+    document.getElementById("routeSummary").textContent = "";
     return;
   }
 
@@ -1000,10 +1063,16 @@ function renderRouteList(stops, anyOpen){
         <button class="check" data-action="complete" data-key="${key}" aria-label="Mark ${esc(r.name)} as done">${CHECK_SVG}</button>
         <span class="stop-num${food ? " food" : ""}">${i + 1}</span>
         <span class="row-name">${esc(r.name)}${food ? `<span class="row-sub">${esc(r.food_time)}</span>` : ""}</span>
+        <span class="eta">~${minutesToClock(r.arrive)}</span>
         <span class="wait ${food ? "meal" : waitClass(r.wait_time)}">${food ? "Meal" : waitText(r.wait_time)}</span>
       </div>
     `;
   }).join("");
+
+  const s = planState.summary;
+  document.getElementById("routeSummary").textContent = s && s.rides
+    ? `${s.rides} ride${s.rides === 1 ? "" : "s"} planned · ends ~${minutesToClock(s.end)} · ${(s.walkMeters / 1609.34).toFixed(1)} mi walking`
+    : "";
 }
 
 function rideCategory(ride){
@@ -1074,10 +1143,6 @@ function updateAI(stops, anyOpen){
     return oldWait && oldWait >= 45 && oldWait - r.wait_time >= 20;
   });
 
-  const avgRouteWait = rides.slice(0,6)
-    .reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, rides.slice(0,6).length);
-  const projectedRides = Math.max(1, Math.floor((userPrefs.parkHours * 60) / (avgRouteWait + 12)));
-
   document.getElementById("aiNext").innerHTML = best.type === "food"
     ? `Head to <strong>${esc(best.name)}</strong> for your meal stop.`
     : `Head to <strong>${esc(best.name)}</strong> (${best.wait_time > 0 ? best.wait_time + " min wait" : "no wait"}).`;
@@ -1087,8 +1152,10 @@ function updateAI(stops, anyOpen){
     ? `<strong>${esc(droppedRide.name)}</strong> fell from ${previousWaits[rideKey(droppedRide)]} to ${droppedRide.wait_time} min.`
     : worst ? `Avoid <strong>${esc(worst.name)}</strong> for now (${worst.wait_time} min wait).` : "No long waits on your route.";
 
-  document.getElementById("aiProjection").innerHTML =
-    `About <strong>${projectedRides} rides</strong> at your current pace.`;
+  const s = planState.summary;
+  document.getElementById("aiProjection").innerHTML = s?.rides
+    ? `<strong>${s.rides} rides</strong> planned before ${minutesToClock(s.end)}.`
+    : "No more rides fit in your remaining time.";
 
   const spikeRide = detectLineSpike(stops);
   document.getElementById("spikeAlert").innerHTML = spikeRide
@@ -1112,7 +1179,7 @@ function updateMetrics(stops){
       document.getElementById(barId).style.width = "0%";
     });
   } else {
-    document.getElementById("sessionTime").innerHTML = `${calculateTimeSaved(stops)}<span class="unit">hours</span>`;
+    document.getElementById("sessionTime").innerHTML = `${calculateTimeSaved()}<span class="unit">hours</span>`;
     meters.forEach(([valueId, barId, calc]) => {
       const value = calc(stops);
       document.getElementById(valueId).textContent = value + "%";
@@ -1126,38 +1193,29 @@ function updateMetrics(stops){
 
 function updateFoodTiming(){
   const banner = document.getElementById("foodTimingBanner");
-
   if(userFoodPlan === "skip-food"){
     banner.className = "banner info";
-    banner.textContent = "Food skipped. Your route focuses fully on rides.";
+    banner.textContent = "No meal planned. Your route focuses fully on rides.";
     return;
   }
-
-  const hour = new Date().getHours();
-  const currentFood = currentStops().find(r => r.type === "food");
-  const waitEstimate = currentFood ? estimateFoodDelay(currentFood) : 25;
-
-  let bestHour;
-
-  if(hour < 11) bestHour = 11;
-  else if(hour >= 11 && hour <= 13) bestHour = 14;
-  else if(hour < 17) bestHour = 16;
-  else if(hour >= 17 && hour <= 19) bestHour = 20;
-  else bestHour = hour;
-
-  const bestTime = new Date();
-  bestTime.setHours(bestHour, 40, 0, 0);
-  const timeText = bestTime.toLocaleTimeString([], { hour:"numeric", minute:"2-digit" });
-
-  const peakRush = (hour >= 11 && hour <= 13) || (hour >= 17 && hour <= 19);
-
-  if(peakRush){
-    banner.className = "banner warn";
-    banner.innerHTML = `Food lines are about ${waitEstimate} min right now. Eat around <strong>${timeText}</strong> instead.`;
-  } else {
+  const meal = currentStops().find(r => r.type === "food");
+  if(meal){
     banner.className = "banner info";
-    banner.textContent = `Good time to eat. Expect about ${waitEstimate} min near your route.`;
+    banner.innerHTML = `Meal stop at <strong>${esc(meal.name)}</strong> around ${minutesToClock(meal.start)}. Expect about ${estimateFoodDelay(meal)} min in line.`;
+    return;
   }
+  if(latestRides.some(r => r.type === "food" && completedRideKeys.includes(rideKey(r)))){
+    banner.className = "banner good";
+    banner.textContent = "Meal done. The rest of your day is rides.";
+    return;
+  }
+  const text = {
+    "window-passed": "Your meal window has passed, so your plan is rides only.",
+    "no-time": "There isn’t time for a meal stop in your remaining plan.",
+    "no-restaurant": "No restaurants near your route are available right now."
+  }[planState.mealStatus] || "Finding the best meal window…";
+  banner.className = "banner warn";
+  banner.textContent = text;
 }
 
 function updateDayStatus(stops){
@@ -1208,8 +1266,9 @@ function updateWarRoom(stops){
   document.getElementById("forecastWait").innerHTML = worst ? `${worst.wait_time}<span class="unit">min</span>` : "--";
   document.getElementById("forecastText").textContent = worst ? `Avoid ${worst.name} for now.` : "Your must-rides are the only long waits left.";
 
-  document.getElementById("walkScore").textContent = second ? "Excellent" : "--";
-  document.getElementById("walkText").textContent = second ? `Pair ${best.name} with ${second.name}`.replace(/\.?$/, ".") : "Add more rides to pair nearby stops.";
+  const s = planState.summary;
+  document.getElementById("walkScore").innerHTML = s ? `${(s.walkMeters / 1609.34).toFixed(1)}<span class="unit">mi</span>` : "--";
+  document.getElementById("walkText").textContent = s ? `${Math.round(s.walkMin)} min of walking across your plan.` : "Add more rides to see your walking.";
 }
 
 // index.html's inline onclick handlers call these; module scope isn't global.

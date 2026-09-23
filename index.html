@@ -209,7 +209,7 @@ input[type=range]::-moz-range-thumb{
 .next-label{font-size:13px;font-weight:600;color:#8fa2ff;margin-bottom:12px}
 .next-row{display:flex;align-items:flex-start;gap:14px}
 .next-main{flex:1;min-width:0}
-#navMain{font-size:24px;line-height:1.2;overflow-wrap:anywhere}
+#navMain{font-size:24px;line-height:1.2;overflow-wrap:break-word;hyphens:auto}
 #navSub{margin-top:4px;font-size:14px;color:var(--muted)}
 .next-wait{
   flex:none;text-align:right;white-space:nowrap;
@@ -382,6 +382,25 @@ input[type=range]::-moz-range-thumb{
 .settings-list div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
 .settings-list dt{color:var(--muted)}
 .settings-list dd{font-weight:500;text-align:right}
+.next-meta{margin-top:8px;font-size:13px;font-weight:600;color:#b8c7df}
+.plan-reason{margin-top:10px;padding:8px 12px;border-radius:var(--r-sm);font-size:13px;background:rgba(0,198,255,.08);border:1px solid rgba(0,198,255,.25);color:#cfeeff}
+.plan-warnings{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.plan-warning{padding:10px 12px;border-radius:var(--r-sm);font-size:13px;background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.3)}
+.plan-warning button{margin-left:6px;color:var(--amber);font-weight:700;text-decoration:underline}
+.eta{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.route-summary{margin-top:10px;font-size:13px;color:var(--muted)}
+.readout-note{margin-top:14px;font-size:14px;color:#b8c7df}
+.ob-note{margin-top:12px;font-size:13px;color:var(--muted);text-align:center}
+.setting{margin-top:20px}
+.setting-head{display:flex;justify-content:space-between;margin-bottom:10px;font-size:14px;color:var(--muted)}
+.setting-head strong{color:var(--text)}
+.segmented{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.segmented button{
+  padding:10px 8px;border-radius:var(--r-sm);font-size:13px;font-weight:600;
+  background:linear-gradient(180deg,#181c24,#111318);border:1px solid rgba(255,255,255,.08);
+}
+.segmented button.selected{border-color:rgba(174,255,0,.55);background:linear-gradient(135deg,rgba(0,82,255,.22),rgba(174,255,0,.08));box-shadow:0 0 18px rgba(174,255,0,.12)}
+.settings-card > .btn{margin-top:24px}
 
 /* ---------- Phones and small tablets ---------- */
 @media (max-width:860px){
@@ -458,6 +477,7 @@ input[type=range]::-moz-range-thumb{
       <div class="readout"><span class="readout-num" id="parkTimeVal">6</span><span class="readout-unit">hours in the park</span></div>
       <input type="range" min="2" max="12" value="6" aria-label="Hours in the park" data-output="parkTimeVal">
       <div class="range-scale"><span>2 hours</span><span>12 hours</span></div>
+      <p class="readout-note" id="endTimeNote"></p>
     </section>
 
     <section class="step hidden">
@@ -495,6 +515,7 @@ input[type=range]::-moz-range-thumb{
 
     <div class="ob-actions">
       <button type="button" class="btn btn-block" id="obNext" disabled>Continue</button>
+      <p class="ob-note hidden" id="locationNote">RideFlow uses your location to plan walks from where you are.</p>
     </div>
   </div>
 </div>
@@ -550,10 +571,13 @@ input[type=range]::-moz-range-thumb{
                 <div class="next-main">
                   <h2 id="navMain">Calculating your best move…</h2>
                   <p id="navSub">RideFlow is building your route.</p>
+                  <p id="nextMeta" class="next-meta"></p>
+                  <p id="planReason" class="plan-reason hidden"></p>
                 </div>
                 <div class="next-wait" id="nextWait"></div>
               </div>
               <p id="routeConfidence">Optimized for low waits and smart walking.</p>
+              <div id="planWarnings" class="plan-warnings hidden"></div>
               <button class="btn btn-sm hidden" id="nextRetry" onclick="fetchLiveWaitTimes()">Try again</button>
             </div>
 
@@ -563,6 +587,7 @@ input[type=range]::-moz-range-thumb{
                 <button class="btn btn-quiet btn-sm" id="reevaluateBtn" onclick="reevaluateRoute()">Reevaluate route</button>
               </div>
               <div class="list" id="rideList"></div>
+              <p id="routeSummary" class="route-summary"></p>
             </section>
 
             <section>
@@ -643,11 +668,35 @@ input[type=range]::-moz-range-thumb{
           <dl class="settings-list">
             <div><dt>Park</dt><dd id="settingsPark">--</dd></div>
             <div><dt>Group size</dt><dd id="settingsGroup">--</dd></div>
-            <div><dt>Time in park</dt><dd id="settingsHours">--</dd></div>
-            <div><dt>Thrill level</dt><dd id="settingsThrill">--</dd></div>
-            <div><dt>Route style</dt><dd id="settingsWalk">--</dd></div>
-            <div><dt>Food plan</dt><dd id="settingsFood">--</dd></div>
           </dl>
+          <div class="setting">
+            <div class="setting-head"><span>Time in park</span><strong id="settingsHoursOut">--</strong></div>
+            <input type="range" id="settingsHours" min="2" max="12" value="6" aria-label="Hours in the park">
+          </div>
+          <div class="setting">
+            <div class="setting-head"><span>Thrill level</span></div>
+            <div class="segmented" data-setting="thrill">
+              <button type="button" data-value="easy">Family friendly</button>
+              <button type="button" data-value="balanced">Balanced</button>
+              <button type="button" data-value="extreme">Big thrills</button>
+            </div>
+          </div>
+          <div class="setting">
+            <div class="setting-head"><span>Route style</span></div>
+            <div class="segmented" data-setting="walking">
+              <button type="button" data-value="low">Minimize walking</button>
+              <button type="button" data-value="balanced">Balanced</button>
+              <button type="button" data-value="max">Max rides</button>
+            </div>
+          </div>
+          <div class="setting">
+            <div class="setting-head"><span>Food plan</span></div>
+            <div class="segmented" data-setting="food">
+              <button type="button" data-value="eat-early">Eat early</button>
+              <button type="button" data-value="eat-late">Eat later</button>
+              <button type="button" data-value="skip-food">No meal</button>
+            </div>
+          </div>
           <button class="btn btn-quiet" onclick="location.reload()">Start over with a new park</button>
         </div>
       </section>
