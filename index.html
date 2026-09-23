@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RideFlow</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0a0c11;
+  --surface:#12151c;
+  --surface-2:#191d26;
+  --line:rgba(255,255,255,.08);
+  --line-strong:rgba(255,255,255,.16);
+  --text:#e8ecf4;
+  --muted:#8b95a7;
+  --faint:#5d6778;
+  --blue:#0052ff;
+  --blue-soft:#5b8dff;
+  --lime:#aeff00;
+  --amber:#ffb800;
+  --red:#ff5a5a;
+  --cyan:#00c6ff;
+  --mint:#5bffb7;
+  --glow-card:0 0 0 1px rgba(0,82,255,.15),0 0 18px rgba(0,82,255,.18),0 0 40px rgba(0,82,255,.08),inset 0 0 20px rgba(255,255,255,.02);
+  --glow-lime:0 0 18px rgba(174,255,0,.14);
+  --neon-text:linear-gradient(90deg,#aeff00 0%,#5bffb7 40%,#00e0ff 100%);
+  --r-sm:10px;
+  --r:14px;
+  --r-lg:18px;
+}
+
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font:15px/1.5 "DM Sans",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"Syne",sans-serif;font-weight:800;line-height:1.15;letter-spacing:-.01em}
+h1{font-size:28px}
+h2{font-size:22px}
+h3{font-size:16px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:disabled{cursor:not-allowed}
+:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.hidden{display:none!important}
+.invisible{visibility:hidden}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:40px;padding:0 16px;border-radius:var(--r-sm);
+  background:linear-gradient(90deg,#0052ff,#00c6ff);color:#fff;font-weight:700;font-size:14px;
+  box-shadow:0 0 12px rgba(0,82,255,.4),0 0 28px rgba(0,198,255,.25);
+  transition:filter .15s ease, box-shadow .15s ease;
+}
+.btn:hover{filter:brightness(1.12);box-shadow:0 0 16px rgba(0,82,255,.55),0 0 36px rgba(0,198,255,.35)}
+.btn:disabled{background:var(--surface-2);color:var(--faint);box-shadow:none;filter:none}
+.btn-quiet{background:transparent;border:1px solid rgba(0,198,255,.3);color:var(--text);box-shadow:0 0 12px rgba(0,82,255,.12)}
+.btn-quiet:hover{background:rgba(0,82,255,.12);box-shadow:0 0 18px rgba(0,82,255,.3);filter:none}
+.btn-quiet:disabled{background:transparent;color:var(--faint);box-shadow:none}
+.btn-sm{height:32px;padding:0 12px;font-size:13px}
+.btn-block{width:100%;height:48px;font-size:15px}
+
+/* ---------- Onboarding ---------- */
+#onboarding{
+  position:fixed;inset:0;z-index:2000;
+  display:flex;overflow-y:auto;
+  background:var(--bg);padding:40px 16px;
+}
+.ob{width:100%;max-width:520px;margin:0 auto;padding-top:min(8vh,72px)}
+.ob-brand{font-family:"Syne";font-weight:800;font-size:20px;margin-bottom:32px;text-shadow:0 0 18px rgba(0,198,255,.35)}
+.ob-top{display:flex;align-items:center;justify-content:space-between;height:28px;margin-bottom:10px}
+.ob-back{color:var(--muted);font-size:14px;padding:4px 0}
+.ob-back:hover{color:var(--text)}
+.ob-count{font-size:13px;color:var(--muted)}
+.ob-progress{height:3px;background:var(--surface-2);border-radius:2px;overflow:hidden;margin-bottom:32px}
+.ob-progress{overflow:visible}
+.ob-progress div{height:100%;width:0;border-radius:2px;background:linear-gradient(90deg,#aeff00,#5bffb7);box-shadow:0 0 10px rgba(174,255,0,.6);transition:width .3s ease}
+.step h1{margin-bottom:8px}
+.lede{color:var(--muted);margin-bottom:24px;max-width:46ch}
+.ob-actions{margin-top:32px}
+
+.options{display:grid;gap:10px}
+.options.two{grid-template-columns:1fr 1fr}
+.options.two .option:last-child:nth-child(odd){grid-column:1 / -1}
+.option{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:14px 16px;text-align:left;
+  background:linear-gradient(180deg,#181c24,#111318);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);
+  transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.option:hover{transform:translateY(-1px);border-color:rgba(174,255,0,.25);box-shadow:0 0 18px rgba(174,255,0,.08)}
+.option.selected{
+  border-color:rgba(174,255,0,.55);
+  background:linear-gradient(135deg,rgba(0,82,255,.22),rgba(174,255,0,.08));
+  box-shadow:0 0 22px rgba(174,255,0,.14);
+}
+.option-icon{font-size:20px;line-height:1;flex:none}
+.option-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.option-title{font-weight:600}
+.option-desc{font-size:13px;color:var(--muted)}
+.radio{
+  margin-left:auto;flex:none;width:18px;height:18px;border-radius:50%;
+  border:1.5px solid var(--line-strong);transition:border .15s ease;
+}
+.option.selected .radio{border:5px solid var(--lime);box-shadow:0 0 10px rgba(174,255,0,.6)}
+
+.readout{display:flex;align-items:baseline;gap:10px;margin:8px 0 24px}
+.readout-num{font-family:"Syne";font-weight:800;font-size:56px;line-height:1;font-variant-numeric:tabular-nums;background:var(--neon-text);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(174,255,0,.35))}
+.readout-unit{color:var(--muted);font-size:16px}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;
+  background:linear-gradient(to right,var(--lime) var(--fill,50%),var(--surface-2) var(--fill,50%));
+  outline-offset:8px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+  background:#fff;box-shadow:0 0 0 4px rgba(174,255,0,.25),0 0 16px rgba(174,255,0,.6);cursor:grab;
+}
+input[type=range]::-moz-range-thumb{
+  width:24px;height:24px;border:0;border-radius:50%;
+  background:#fff;box-shadow:0 0 0 4px rgba(174,255,0,.25),0 0 16px rgba(174,255,0,.6);cursor:grab;
+}
+.range-scale{display:flex;justify-content:space-between;margin-top:12px;font-size:12px;color:var(--faint)}
+
+/* ---------- App shell ---------- */
+#app{display:flex;height:100vh}
+#sidebar{
+  width:208px;flex:none;display:flex;flex-direction:column;gap:24px;
+  padding:20px 12px;background:var(--surface);border-right:1px solid var(--line);
+}
+.logo{font-family:"Syne";font-weight:800;font-size:22px;padding:0 10px;text-shadow:0 0 18px rgba(0,198,255,.35)}
+#mobileMenuBtn{display:none}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{
+  text-align:left;padding:10px 12px;border-radius:var(--r-sm);
+  color:var(--muted);font-weight:500;font-size:14px;
+}
+.nav button:hover{color:var(--text);background:var(--surface-2)}
+.nav button.active{color:#fff;background:rgba(0,82,255,.15);box-shadow:inset 2px 0 0 var(--lime),0 0 18px rgba(0,82,255,.22)}
+
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+#topbar{
+  display:flex;align-items:center;gap:16px;min-height:64px;
+  padding:12px 24px;border-bottom:1px solid var(--line);
+}
+.park-title{font-weight:600}
+#lastUpdated{font-size:12px;color:var(--muted)}
+#trustInline{
+  min-width:0;padding-left:16px;border-left:1px solid var(--line);
+  font-size:13px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:opacity .2s ease;
+}
+.topbar-actions{margin-left:auto;flex:none;display:flex;align-items:center;gap:14px}
+.live{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;
+  font-size:12px;font-weight:700;color:var(--lime);
+  background:rgba(174,255,0,.12);border:1px solid rgba(174,255,0,.25);box-shadow:0 0 14px rgba(174,255,0,.18);
+}
+.live::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.live.off{color:var(--muted);background:transparent;border-color:var(--line);box-shadow:none}
+.live.off::before{box-shadow:none}
+
+#content{flex:1;overflow:auto;min-height:0}
+.screen{height:100%;padding:24px}
+.page-head{margin-bottom:24px}
+.page-head p{color:var(--muted);margin-top:6px}
+
+/* ---------- Live map screen ---------- */
+.map-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;height:100%}
+.map-wrap{
+  position:relative;min-height:480px;overflow:hidden;
+  background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-lg);
+  box-shadow:var(--glow-card);
+}
+#liveParkMap{position:absolute;inset:0}
+.map-status{
+  position:absolute;top:12px;left:12px;right:12px;z-index:500;width:max-content;max-width:calc(100% - 24px);
+  padding:8px 12px;border-radius:var(--r-sm);font-size:13px;
+  background:rgba(18,21,28,.94);border:1px solid var(--line-strong);
+}
+.map-legend{
+  position:absolute;left:12px;bottom:12px;z-index:500;
+  display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 12px;
+  background:rgba(18,21,28,.9);border:1px solid var(--line);border-radius:var(--r-sm);
+  font-size:12px;color:var(--muted);
+}
+.map-legend span{display:inline-flex;align-items:center;gap:6px}
+.map-legend .pin{width:14px;height:14px;font-size:0;border-width:1px;box-shadow:0 0 8px rgba(174,255,0,.6)}
+.map-legend .pin::after{display:none}
+
+.panel{display:flex;flex-direction:column;gap:28px;min-height:0;overflow-y:auto;padding:4px 8px 4px 4px;margin:-4px -8px -4px -4px}
+
+.next-card{
+  padding:20px;border-radius:var(--r-lg);
+  background:linear-gradient(135deg,rgba(0,82,255,.2),rgba(174,255,0,.08)),var(--surface);
+  border:1px solid rgba(174,255,0,.3);
+  box-shadow:0 0 24px rgba(0,82,255,.18),0 0 32px rgba(174,255,0,.08);
+}
+.next-label{font-size:13px;font-weight:600;color:#8fa2ff;margin-bottom:12px}
+.next-row{display:flex;align-items:flex-start;gap:14px}
+.next-main{flex:1;min-width:0}
+#navMain{font-size:24px;line-height:1.2;overflow-wrap:anywhere}
+#navSub{margin-top:4px;font-size:14px;color:var(--muted)}
+.next-wait{
+  flex:none;text-align:right;white-space:nowrap;
+  font-family:"Syne";font-weight:800;font-size:26px;line-height:1.2;font-variant-numeric:tabular-nums;
+}
+.next-wait .no-wait{font:600 14px "DM Sans",sans-serif}
+.next-wait .unit{font-size:13px;color:var(--muted);margin-left:3px;font-family:"DM Sans";font-weight:500}
+#routeConfidence{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+#nextRetry{margin-top:16px}
+
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.section-note{font-size:13px;color:var(--muted);margin-bottom:8px}
+
+.list{display:flex;flex-direction:column}
+.row{
+  display:flex;align-items:center;gap:12px;padding:10px 2px;
+  border-bottom:1px solid var(--line);
+  transition:transform .25s ease .12s, opacity .25s ease .12s;
+}
+.row:last-child{border-bottom:0}
+.row:hover{background:linear-gradient(90deg,rgba(174,255,0,.04),transparent)}
+.row.leaving{transform:translateX(24px);opacity:0}
+.row-name{flex:1;min-width:0;font-size:14px;font-weight:500;overflow-wrap:anywhere}
+.row-sub{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+.stop-num{
+  flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+  font-size:11px;font-weight:700;color:var(--lime);border:1px solid rgba(174,255,0,.55);
+  box-shadow:0 0 8px rgba(174,255,0,.25);text-shadow:0 0 8px rgba(174,255,0,.6);
+}
+.stop-num.food{color:var(--cyan);border-color:rgba(0,198,255,.6);box-shadow:0 0 8px rgba(0,198,255,.3);text-shadow:0 0 8px rgba(0,198,255,.6)}
+.wait{flex:none;font-size:13px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.low{color:var(--lime);text-shadow:0 0 10px rgba(174,255,0,.45)}
+.med{color:var(--amber);text-shadow:0 0 10px rgba(255,184,0,.4)}
+.high{color:var(--red);text-shadow:0 0 10px rgba(255,90,90,.45)}
+.closed{color:var(--faint)}
+.meal{color:var(--cyan);text-shadow:0 0 10px rgba(0,198,255,.45)}
+
+.check{
+  flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;
+  border:1.5px solid var(--line-strong);color:transparent;
+  transition:background .15s ease, border-color .15s ease, color .15s ease;
+}
+.check svg{width:14px;height:14px}
+.check:hover{border-color:var(--lime);color:rgba(174,255,0,.55);box-shadow:0 0 12px rgba(174,255,0,.3)}
+.check.done{background:var(--lime);border-color:var(--lime);color:var(--bg);animation:check-burst .5s ease-out}
+@keyframes check-burst{
+  0%{box-shadow:0 0 0 0 rgba(174,255,0,.8),0 0 18px rgba(174,255,0,.9)}
+  100%{box-shadow:0 0 0 14px rgba(174,255,0,0),0 0 18px rgba(174,255,0,.5)}
+}
+.check-lg{width:30px;height:30px;margin-top:1px}
+.check-lg svg{width:16px;height:16px}
+
+.star{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:var(--faint)}
+.star svg{width:18px;height:18px;fill:none}
+.star:hover{color:var(--text)}
+.star.on{color:var(--amber);filter:drop-shadow(0 0 6px rgba(255,184,0,.7))}
+.star.on svg{fill:currentColor}
+
+.group{border-bottom:1px solid var(--line)}
+.group summary{
+  list-style:none;display:flex;align-items:center;gap:8px;padding:12px 2px;
+  font-size:14px;font-weight:600;cursor:pointer;
+}
+.group summary::-webkit-details-marker{display:none}
+.group summary .count{color:var(--muted);font-weight:400}
+.group summary::after{
+  content:"";margin-left:auto;width:7px;height:7px;
+  border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);
+  transform:rotate(45deg);transition:transform .15s ease;
+}
+.group[open] summary::after{transform:rotate(-135deg)}
+.group .list{padding-bottom:8px}
+.group .row{border-bottom:0;padding:6px 2px}
+
+.empty{padding:14px 16px;border:1px dashed var(--line-strong);border-radius:var(--r);font-size:14px;color:var(--muted)}
+.source{font-size:12px;color:var(--faint);padding-bottom:4px}
+
+/* ---------- Map markers ---------- */
+.pin{
+  width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  background:var(--lime);color:var(--bg);font:600 12px/1 "DM Sans",sans-serif;
+  border:2px solid var(--bg);position:relative;
+  box-shadow:0 0 12px rgba(174,255,0,.75),0 0 26px rgba(174,255,0,.35);
+}
+.pin.first{width:34px;height:34px;font-size:14px;font-weight:700}
+.pin.first::after{
+  content:"";position:absolute;inset:-4px;border-radius:50%;
+  border:2px solid var(--lime);animation:pin-pulse 1.8s ease-out infinite;
+}
+@keyframes pin-pulse{
+  0%{transform:scale(1);opacity:.9}
+  100%{transform:scale(2);opacity:0}
+}
+.pin.food{background:var(--cyan);color:var(--bg);box-shadow:0 0 12px rgba(0,198,255,.75),0 0 26px rgba(0,198,255,.35)}
+.pin.food.first::after{border-color:var(--cyan)}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid var(--bg);background:var(--faint)}
+.dot.low{background:var(--lime);box-shadow:0 0 8px rgba(174,255,0,.8)}
+.dot.med{background:var(--amber);box-shadow:0 0 8px rgba(255,184,0,.8)}
+.dot.high{background:var(--red);box-shadow:0 0 8px rgba(255,90,90,.8)}
+.dot.closed{background:#3a4150}
+
+.leaflet-container{background:var(--surface);font-family:inherit}
+/* Half-pixel overlap hides hairline gaps between tiles. */
+#liveParkMap .leaflet-tile{width:256.5px!important;height:256.5px!important}
+#liveParkMap .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.78) contrast(.8) saturate(.15)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--surface-2);color:var(--text);box-shadow:0 4px 16px rgba(0,0,0,.45)}
+.leaflet-popup-content{margin:10px 14px;font-size:13px;line-height:1.45}
+.leaflet-container a.leaflet-popup-close-button{color:var(--muted)}
+.leaflet-control-attribution{background:rgba(10,12,17,.75)!important;color:var(--faint)!important}
+.leaflet-control-attribution a{color:var(--muted)!important}
+
+/* ---------- War room ---------- */
+.banners{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.banner{
+  padding:14px 16px;font-size:14px;border-radius:var(--r);
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--faint);font-weight:500;
+}
+.banner.good{background:rgba(174,255,0,.08);border-color:rgba(174,255,0,.22);border-left-color:var(--lime);box-shadow:0 0 22px rgba(174,255,0,.08)}
+.banner.warn{background:rgba(255,184,0,.08);border-color:rgba(255,184,0,.28);border-left-color:var(--amber);box-shadow:0 0 22px rgba(255,184,0,.08)}
+.banner.info{background:rgba(0,224,255,.07);border-color:rgba(0,224,255,.22);border-left-color:var(--cyan);box-shadow:0 0 22px rgba(0,224,255,.07)}
+.banner strong{font-weight:700;background:var(--neon-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.banner.warn strong{background:none;color:var(--amber)}
+
+.wr-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px}
+.span-4{grid-column:span 4}
+.span-5{grid-column:span 5}
+.span-7{grid-column:span 7}
+.card{padding:20px;background:linear-gradient(180deg,#111318 0%,#0d1016 100%);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-lg);box-shadow:var(--glow-card)}
+.card h3{margin-bottom:12px}
+.stat{font-family:"Syne";font-weight:800;font-size:40px;line-height:1.1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.stat .unit{font-size:16px;color:var(--muted);-webkit-text-fill-color:var(--muted);margin-left:4px;font-family:"DM Sans";font-weight:500}
+.stat.accent{background:var(--neon-text);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(174,255,0,.3))}
+.stat.hot{color:var(--red);text-shadow:0 0 18px rgba(255,90,90,.4)}
+.stat-note{margin-top:6px;font-size:13px;color:var(--muted)}
+.meters{display:flex;flex-direction:column;gap:14px;margin-top:24px}
+.meter-top{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:var(--muted)}
+.meter-top strong{font-weight:700;background:var(--neon-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bar{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.bar{overflow:visible}
+.bar div{height:100%;width:0;background:linear-gradient(90deg,#aeff00,#5bffb7);border-radius:3px;box-shadow:0 0 10px rgba(174,255,0,.5);transition:width .4s ease}
+.recs{display:flex;flex-direction:column}
+.rec{display:grid;grid-template-columns:112px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rec:first-child{padding-top:0}
+.rec:last-child{border-bottom:0;padding-bottom:0}
+.rec-title{color:var(--muted);font-size:13px}
+.rec-body strong{font-weight:700;color:#fff}
+.rec-title{font-weight:600}
+
+/* ---------- Settings ---------- */
+.settings-card{max-width:560px}
+.settings-list{margin-bottom:20px}
+.settings-list div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.settings-list dt{color:var(--muted)}
+.settings-list dd{font-weight:500;text-align:right}
+
+/* ---------- Phones and small tablets ---------- */
+@media (max-width:860px){
+  #app{display:block;height:auto;min-height:100vh}
+  #sidebar{
+    position:sticky;top:0;z-index:1000;width:auto;
+    flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0;
+    padding:10px 16px;border-right:0;border-bottom:1px solid var(--line);
+  }
+  .logo{padding:0}
+  #mobileMenuBtn{display:grid;place-items:center;width:40px;height:40px;font-size:20px;border-radius:var(--r-sm)}
+  .nav{display:none;width:100%;padding:8px 0 4px}
+  .nav.mobile-open{display:flex}
+  #topbar{flex-wrap:wrap;gap:6px 12px;padding:12px 16px}
+  #trustInline{order:3;width:100%;padding:0;border:0;white-space:normal}
+  #content{overflow:visible}
+  .screen{height:auto;padding:16px}
+  .map-grid{grid-template-columns:1fr;height:auto}
+  .map-wrap{min-height:0;height:360px}
+  .map-legend{left:8px;bottom:8px;right:8px;width:max-content;max-width:calc(100% - 16px);gap:4px 10px;padding:6px 8px;font-size:11px}
+  .panel{overflow:visible;padding:0;margin:0}
+  .banners{grid-template-columns:1fr}
+  .wr-grid{grid-template-columns:1fr;gap:16px}
+  .span-4,.span-5,.span-7{grid-column:auto}
+  .rec{grid-template-columns:1fr;gap:2px}
+}
+@media (max-width:420px){
+  h1{font-size:24px}
+  .options.two{grid-template-columns:1fr}
+  .readout-num{font-size:48px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<div id="onboarding">
+  <div class="ob">
+    <div class="ob-brand">RideFlow</div>
+    <div class="ob-top">
+      <button type="button" class="ob-back invisible" id="obBack">Back</button>
+      <span class="ob-count" id="obCount">Step 1 of 6</span>
+    </div>
+    <div class="ob-progress"><div id="obProgress"></div></div>
+
+    <section class="step">
+      <h1>Where are you heading?</h1>
+      <p class="lede">Choose your park so RideFlow can build a live plan around wait times, walking, and food stops.</p>
+      <div class="options two" role="radiogroup" aria-label="Park" data-field="park">
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="Magic Kingdom"><span class="option-icon">🏰</span><span class="option-title">Magic Kingdom</span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="EPCOT"><span class="option-icon">🌐</span><span class="option-title">EPCOT</span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="Hollywood Studios"><span class="option-icon">🎬</span><span class="option-title">Hollywood Studios</span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="Animal Kingdom"><span class="option-icon">🦁</span><span class="option-title">Animal Kingdom</span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="Disneyland"><span class="option-icon">✨</span><span class="option-title">Disneyland</span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="Cedar Point"><span class="option-icon">🎢</span><span class="option-title">Cedar Point</span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="Kings Island"><span class="option-icon">👑</span><span class="option-title">Kings Island</span><span class="radio"></span></button>
+      </div>
+    </section>
+
+    <section class="step hidden">
+      <h1>How many people?</h1>
+      <p class="lede">Bigger groups get more family-friendly picks.</p>
+      <div class="readout"><span class="readout-num" id="groupSizeVal">4</span><span class="readout-unit" id="groupSizeUnit">people</span></div>
+      <input type="range" min="1" max="12" value="4" aria-label="Group size"
+             data-output="groupSizeVal" data-unit="groupSizeUnit" data-one="person" data-many="people">
+      <div class="range-scale"><span>1</span><span>12</span></div>
+    </section>
+
+    <section class="step hidden">
+      <h1>How long are you staying?</h1>
+      <p class="lede">RideFlow paces your route to fit your day.</p>
+      <div class="readout"><span class="readout-num" id="parkTimeVal">6</span><span class="readout-unit">hours in the park</span></div>
+      <input type="range" min="2" max="12" value="6" aria-label="Hours in the park" data-output="parkTimeVal">
+      <div class="range-scale"><span>2 hours</span><span>12 hours</span></div>
+    </section>
+
+    <section class="step hidden">
+      <h1>What’s your thrill level?</h1>
+      <p class="lede">Your route leans toward rides that match.</p>
+      <div class="options" role="radiogroup" aria-label="Thrill level" data-field="thrillPref">
+        <button type="button" class="option selected" role="radio" aria-checked="true" data-value="balanced"><span class="option-text"><span class="option-title">Balanced</span><span class="option-desc">Mix of thrills and classics</span></span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="easy"><span class="option-text"><span class="option-title">Family friendly</span><span class="option-desc">Low intensity, kid-friendly rides</span></span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="extreme"><span class="option-text"><span class="option-title">Big thrills</span><span class="option-desc">Roller coasters and high-adrenaline rides</span></span><span class="radio"></span></button>
+      </div>
+      <input type="hidden" id="thrillPref" value="balanced">
+    </section>
+
+    <section class="step hidden">
+      <h1>How should RideFlow optimize?</h1>
+      <p class="lede">Choose how your route trades walking against waiting.</p>
+      <div class="options" role="radiogroup" aria-label="Route style" data-field="walkingPref">
+        <button type="button" class="option selected" role="radio" aria-checked="true" data-value="balanced"><span class="option-text"><span class="option-title">Balanced route</span><span class="option-desc">Smart mix of walking and wait times</span></span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="low"><span class="option-text"><span class="option-title">Minimize walking</span><span class="option-desc">Stay in tight zones with less movement</span></span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="max"><span class="option-text"><span class="option-title">Max rides</span><span class="option-desc">Cover more ground to ride more</span></span><span class="radio"></span></button>
+      </div>
+      <input type="hidden" id="walkingPref" value="balanced">
+    </section>
+
+    <section class="step hidden">
+      <h1>Food plan?</h1>
+      <p class="lede">RideFlow adds a meal stop near your route.</p>
+      <div class="options" role="radiogroup" aria-label="Food plan" data-field="foodPref">
+        <button type="button" class="option selected" role="radio" aria-checked="true" data-value="eat-late"><span class="option-text"><span class="option-title">Eat later</span><span class="option-desc">Meal stop after your first four rides</span></span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="eat-early"><span class="option-text"><span class="option-title">Eat early</span><span class="option-desc">Meal stop after your first two rides</span></span><span class="radio"></span></button>
+        <button type="button" class="option" role="radio" aria-checked="false" data-value="skip-food"><span class="option-text"><span class="option-title">Don’t eat in the park</span><span class="option-desc">Your route covers rides only</span></span><span class="radio"></span></button>
+      </div>
+      <input type="hidden" id="foodPref" value="eat-late">
+    </section>
+
+    <div class="ob-actions">
+      <button type="button" class="btn btn-block" id="obNext" disabled>Continue</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <aside id="sidebar">
+    <div class="logo">RideFlow</div>
+    <button id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-label="Open menu" aria-expanded="false">☰</button>
+    <nav class="nav">
+      <button class="active" onclick="showScreen('map',this)">Live Map</button>
+      <button onclick="showScreen('warroom',this)">War Room</button>
+      <button onclick="showScreen('settings',this)">Settings</button>
+    </nav>
+  </aside>
+
+  <main id="main">
+    <header id="topbar">
+      <div>
+        <div class="park-title" id="parkName">RideFlow</div>
+        <div id="lastUpdated">Loading live data…</div>
+      </div>
+      <div id="trustInline">Analyzing route…</div>
+      <div class="topbar-actions">
+        <span class="live" id="liveBadge">Live</span>
+        <button class="btn btn-quiet btn-sm" id="refreshBtn" onclick="fetchLiveWaitTimes()">Refresh</button>
+      </div>
+    </header>
+
+    <div id="content">
+      <section id="screen-map" class="screen">
+        <div class="map-grid">
+          <div class="map-wrap">
+            <div id="liveParkMap" role="region" aria-label="Park map"></div>
+            <div id="mapStatus" class="map-status hidden"></div>
+            <div class="map-legend" aria-hidden="true">
+              <span><i class="pin"></i>Your route</span>
+              <span><i class="dot low"></i>15 min or less</span>
+              <span><i class="dot med"></i>16–35 min</span>
+              <span><i class="dot high"></i>Over 35 min</span>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="next-card">
+              <p class="next-label" id="nextLabel">Next up</p>
+              <div class="next-row">
+                <button class="check check-lg hidden" id="goNowCheck" data-action="complete" aria-label="Mark next stop as done">
+                  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="next-main">
+                  <h2 id="navMain">Calculating your best move…</h2>
+                  <p id="navSub">RideFlow is building your route.</p>
+                </div>
+                <div class="next-wait" id="nextWait"></div>
+              </div>
+              <p id="routeConfidence">Optimized for low waits and smart walking.</p>
+              <button class="btn btn-sm hidden" id="nextRetry" onclick="fetchLiveWaitTimes()">Try again</button>
+            </div>
+
+            <section>
+              <div class="section-head">
+                <h3>Your route</h3>
+                <button class="btn btn-quiet btn-sm" id="reevaluateBtn" onclick="reevaluateRoute()">Reevaluate route</button>
+              </div>
+              <div class="list" id="rideList"></div>
+            </section>
+
+            <section>
+              <div class="section-head"><h3>Must-ride priorities</h3></div>
+              <p class="section-note">Star rides to move them up your route. Star a restaurant to make it your meal stop.</p>
+              <div id="mustRideList"></div>
+            </section>
+
+            <p class="source">Live waits from ThemeParks.wiki, refreshed every 5 minutes</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-warroom" class="screen hidden">
+        <div class="page-head">
+          <h1>Your Park Intelligence Suite</h1>
+          <p>A live read on your route, built from current wait times.</p>
+        </div>
+
+        <div class="banners">
+          <div id="dayStatusBanner" class="banner">Analyzing your day…</div>
+          <div id="foodTimingBanner" class="banner info">Finding the best meal window…</div>
+        </div>
+
+        <div class="wr-grid">
+          <div class="card span-5">
+            <h3>Time saved today</h3>
+            <div class="stat accent" id="sessionTime">--</div>
+            <p class="stat-note">Estimated hours saved compared with the park’s average wait</p>
+            <div class="meters">
+              <div>
+                <div class="meter-top"><span>Route quality</span><strong id="routeQuality">--</strong></div>
+                <div class="bar"><div id="barRoute"></div></div>
+              </div>
+              <div>
+                <div class="meter-top"><span>Line avoidance</span><strong id="crowdAvoid">--</strong></div>
+                <div class="bar"><div id="barAvoid"></div></div>
+              </div>
+              <div>
+                <div class="meter-top"><span>Walking efficiency</span><strong id="walkEff">--</strong></div>
+                <div class="bar"><div id="barWalk"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card span-7">
+            <h3>Recommendations</h3>
+            <div class="recs">
+              <div class="rec"><div class="rec-title">Next move</div><div class="rec-body" id="aiNext">Waiting for live data…</div></div>
+              <div class="rec"><div class="rec-title" id="aiAlertTitle">Crowd alert</div><div class="rec-body" id="aiAlert">Analyzing crowds…</div></div>
+              <div class="rec"><div class="rec-title">Line spike</div><div class="rec-body" id="spikeAlert">Watching wait trends…</div></div>
+              <div class="rec"><div class="rec-title">At this pace</div><div class="rec-body" id="aiProjection">Calculating day projection…</div></div>
+              <div class="rec"><div class="rec-title">Insider tip</div><div class="rec-body" id="insiderTip">Looking for smart park tips…</div></div>
+            </div>
+          </div>
+
+          <div class="card span-4">
+            <h3>Best move now</h3>
+            <div class="stat accent" id="routeMove">--</div>
+            <p class="stat-note" id="routeText">Waiting for live data…</p>
+          </div>
+          <div class="card span-4">
+            <h3>Longest wait</h3>
+            <div class="stat hot" id="forecastWait">--</div>
+            <p class="stat-note" id="forecastText">Analyzing wait movement…</p>
+          </div>
+          <div class="card span-4">
+            <h3>Walking</h3>
+            <div class="stat accent" id="walkScore">--</div>
+            <p class="stat-note" id="walkText">Clustering nearby low-wait rides…</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-settings" class="screen hidden">
+        <div class="page-head"><h1>Settings</h1></div>
+        <div class="card settings-card">
+          <dl class="settings-list">
+            <div><dt>Park</dt><dd id="settingsPark">--</dd></div>
+            <div><dt>Group size</dt><dd id="settingsGroup">--</dd></div>
+            <div><dt>Time in park</dt><dd id="settingsHours">--</dd></div>
+            <div><dt>Thrill level</dt><dd id="settingsThrill">--</dd></div>
+            <div><dt>Route style</dt><dd id="settingsWalk">--</dd></div>
+            <div><dt>Food plan</dt><dd id="settingsFood">--</dd></div>
+          </dl>
+          <button class="btn btn-quiet" onclick="location.reload()">Start over with a new park</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+let selectedPark = null;
+let parkMap;
+let rideMarkers = [];
+let routeLayers = [];
+let userPrefs = { groupSize: 4, parkHours: 6, thrill: "balanced", walking: "balanced" };
+let completedRideKeys = [];
+let latestRides = [];
+let frozenRoute = [];
+let previousWaits = {};
+let mustRideNames = [];
+let selectedFoodName = null;
+let userFoodPlan = "eat-late";
+
+const PARK_ENTITY_IDS = {
+  "Magic Kingdom": "75ea578a-adc8-4116-a54d-dccb60765ef9",
+  "EPCOT": "47f90d2c-e191-4239-a466-5892ef59a88b",
+  "Hollywood Studios": "288747d1-8b4f-4a64-867e-ea7c9b27bad8",
+  "Animal Kingdom": "1c84a229-8862-4648-9c71-378ddd2c7693",
+  "Disneyland": "7340550b-c14d-4def-80bb-acdb51d49a66",
+  "Cedar Point": "c8299e1a-0098-4677-8ead-dd0da204f8dc",
+  "Kings Island": "694e1f6e-d6a2-4c86-9749-5da1a9cb8924"
+};
+
+const PARK_CENTERS = {
+  "Magic Kingdom":[28.4177,-81.5812],
+  "EPCOT":[28.3747,-81.5494],
+  "Hollywood Studios":[28.3575,-81.5583],
+  "Animal Kingdom":[28.3557,-81.5900],
+  "Disneyland":[33.8121,-117.9190],
+  "Cedar Point":[41.4822,-82.6835],
+  "Kings Island":[39.3430,-84.2675]
+};
+
+const PREF_LABELS = {
+  thrill: { balanced:"Balanced", easy:"Family friendly", extreme:"Big thrills" },
+  walking: { balanced:"Balanced route", low:"Minimize walking", max:"Max rides" },
+  food: { "eat-late":"Eat later", "eat-early":"Eat early", "skip-food":"Not eating in the park" }
+};
+
+const GROUP_LABELS = { Thrill:"Thrill rides", Kids:"Kids and family", Shows:"Shows", Food:"Dining", Other:"Other rides" };
+
+const CHECK_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const STAR_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+
+function esc(value){
+  return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ---------- Onboarding ---------- */
+const obSteps = [...document.querySelectorAll("#onboarding .step")];
+let obStep = 0;
+
+function renderStep(){
+  obSteps.forEach((step,i) => step.classList.toggle("hidden", i !== obStep));
+  document.getElementById("obProgress").style.width = ((obStep + 1) / obSteps.length * 100) + "%";
+  document.getElementById("obCount").textContent = `Step ${obStep + 1} of ${obSteps.length}`;
+  document.getElementById("obBack").classList.toggle("invisible", obStep === 0);
+
+  const next = document.getElementById("obNext");
+  next.textContent = obStep === obSteps.length - 1 ? "Build my route" : "Continue";
+  next.disabled = obStep === 0 && !selectedPark;
+}
+
+document.getElementById("obNext").addEventListener("click", () => {
+  if(obStep === obSteps.length - 1) return launchApp();
+  obStep++;
+  renderStep();
+});
+
+document.getElementById("obBack").addEventListener("click", () => {
+  if(obStep > 0){
+    obStep--;
+    renderStep();
+  }
+});
+
+document.querySelectorAll("#onboarding .options").forEach(group => {
+  group.addEventListener("click", e => {
+    const option = e.target.closest(".option");
+    if(!option) return;
+
+    group.querySelectorAll(".option").forEach(o => {
+      o.classList.remove("selected");
+      o.setAttribute("aria-checked", "false");
+    });
+    option.classList.add("selected");
+    option.setAttribute("aria-checked", "true");
+
+    if(group.dataset.field === "park") selectedPark = option.dataset.value;
+    else document.getElementById(group.dataset.field).value = option.dataset.value;
+
+    renderStep();
+  });
+});
+
+document.querySelectorAll("#onboarding input[type=range]").forEach(input => {
+  const output = document.getElementById(input.dataset.output);
+  const unit = input.dataset.unit && document.getElementById(input.dataset.unit);
+
+  const paint = () => {
+    output.textContent = input.value;
+    if(unit) unit.textContent = input.value === "1" ? input.dataset.one : input.dataset.many;
+    const fill = (input.value - input.min) / (input.max - input.min) * 100;
+    input.style.setProperty("--fill", fill + "%");
+  };
+
+  input.addEventListener("input", paint);
+  paint();
+});
+
+renderStep();
+
+function launchApp(){
+  userPrefs = {
+    groupSize: Number(document.getElementById("groupSizeVal").textContent),
+    parkHours: Number(document.getElementById("parkTimeVal").textContent),
+    thrill: document.getElementById("thrillPref").value,
+    walking: document.getElementById("walkingPref").value
+  };
+
+  userFoodPlan = document.getElementById("foodPref").value;
+
+  document.getElementById("onboarding").classList.add("hidden");
+  document.getElementById("parkName").textContent = selectedPark;
+  renderSettings();
+
+  fetchLiveWaitTimes();
+  setInterval(fetchLiveWaitTimes, 300000);
+}
+
+function renderSettings(){
+  document.getElementById("settingsPark").textContent = selectedPark;
+  document.getElementById("settingsGroup").textContent = userPrefs.groupSize === 1 ? "1 person" : `${userPrefs.groupSize} people`;
+  document.getElementById("settingsHours").textContent = `${userPrefs.parkHours} hours`;
+  document.getElementById("settingsThrill").textContent = PREF_LABELS.thrill[userPrefs.thrill];
+  document.getElementById("settingsWalk").textContent = PREF_LABELS.walking[userPrefs.walking];
+  document.getElementById("settingsFood").textContent = PREF_LABELS.food[userFoodPlan];
+}
+
+/* ---------- Navigation ---------- */
+function toggleMobileMenu(){
+  const nav = document.querySelector(".nav");
+  const btn = document.getElementById("mobileMenuBtn");
+  const open = nav.classList.toggle("mobile-open");
+
+  btn.textContent = open ? "✕" : "☰";
+  btn.setAttribute("aria-expanded", String(open));
+  btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+}
+
+function showScreen(name, btn){
+  document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+  document.getElementById("screen-" + name).classList.remove("hidden");
+
+  document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+  if(btn) btn.classList.add("active");
+
+  if(document.querySelector(".nav").classList.contains("mobile-open")) toggleMobileMenu();
+
+  if(name === "map" && parkMap) setTimeout(() => parkMap.invalidateSize(), 0);
+}
+
+document.addEventListener("click", e => {
+  const btn = e.target.closest("[data-action]");
+  if(!btn) return;
+
+  if(btn.dataset.action === "complete" && btn.dataset.key) completeRide(btn.dataset.key);
+  if(btn.dataset.action === "star") togglePriorityItem(btn.dataset.name);
+});
+
+/* ---------- Scoring ---------- */
+function waitClass(wait){ if(wait <= 15) return "low"; if(wait <= 35) return "med"; return "high"; }
+
+// Longest wait among rides the guest hasn't starred, so we never say "avoid" a must-ride.
+function longestWait(rides){
+  return rides
+    .filter(r => !mustRideNames.includes(r.name))
+    .sort((a,b) => b.wait_time - a.wait_time)[0] || null;
+}
+
+function waitText(wait){ return wait > 0 ? `${wait} min` : "No wait"; }
+
+function rideKey(ride){
+  return ride.id || ride.name;
+}
+
+function currentStops(){
+  return frozenRoute.filter(r => !completedRideKeys.includes(rideKey(r)));
+}
+
+function detectLineSpike(openRides){
+  const rising = openRides
+    .filter(r => r.type !== "food")
+    .map(r => {
+      const oldWait = previousWaits[r.name];
+      const currentWait = r.wait_time;
+
+      if(oldWait === undefined) return null;
+
+      const jump = currentWait - oldWait;
+
+      return {
+        ...r,
+        jump,
+        spikeRisk: jump * 3 + currentWait * 0.35 + calculateRideScore(r) * 0.25
+      };
+    })
+    .filter(r => r && r.jump >= 5)
+    .sort((a,b) => b.spikeRisk - a.spikeRisk);
+
+  return rising[0] || null;
+}
+
+function generateInsiderTip(openRides){
+  const ride = openRides.find(r => r.type !== "food" && r.wait_time >= 35) || openRides.find(r => r.type !== "food");
+
+  if(!ride) return "Keep following your optimized route.";
+
+  const name = ride.name.toLowerCase();
+
+  if(name.includes("mountain") || name.includes("coaster")){
+    return `${ride.name} may move faster than it looks because coaster lines usually load continuously.`;
+  }
+
+  if(name.includes("pirates") || name.includes("small world") || name.includes("haunted")){
+    return `${ride.name} is a strong pick because high-capacity rides often absorb crowds well.`;
+  }
+
+  if(name.includes("splash") || name.includes("water")){
+    return `${ride.name} often gets busier when temperatures rise, so earlier is usually smarter.`;
+  }
+
+  if(ride.wait_time <= 15){
+    return `${ride.name} is in a low-wait window right now. Good time to grab it.`;
+  }
+
+  return `${ride.name} is worth watching. If it drops by 10+ minutes, it becomes a strong move.`;
+}
+
+function estimateFoodDelay(restaurant){
+  const hour = new Date().getHours();
+  const name = restaurant.name.toLowerCase();
+
+  let delay = 10;
+
+  if(hour >= 11 && hour <= 13) delay += 12;
+  if(hour >= 17 && hour <= 19) delay += 15;
+
+  if(name.includes("grill") || name.includes("barbecue") || name.includes("pizza")) delay += 8;
+  if(name.includes("cafe") || name.includes("market") || name.includes("snack")) delay += 3;
+  if(name.includes("ice cream") || name.includes("funnel") || name.includes("popcorn")) delay -= 5;
+  if(name.includes("stand") || name.includes("cart")) delay -= 7;
+
+  const variation = restaurant.name.length % 4;
+  delay += variation * 3;
+
+  return Math.round(Math.max(5, delay) / 5) * 5;
+}
+
+function calculateRideScore(ride){
+  const wait = Number(ride.wait_time || 0);
+  const name = ride.name.toLowerCase();
+  let score = 100 - wait * 0.6;
+
+  const isThrill = name.includes("mountain") || name.includes("coaster") || name.includes("thunder");
+  const isFamily = name.includes("dumbo") || name.includes("small world") || name.includes("carousel") || name.includes("princess");
+  const isClassic = name.includes("pirates") || name.includes("haunted") || name.includes("jungle");
+
+  if(userPrefs.thrill === "extreme" && isThrill) score += 50;
+  if(userPrefs.thrill === "easy" && isFamily) score += 50;
+  if(userPrefs.thrill === "balanced" && (isClassic || isFamily)) score += 20;
+
+  if(userPrefs.groupSize >= 6 && isFamily) score += 12;
+  if(wait >= 60) score -= 20;
+  if(mustRideNames.includes(ride.name)) score += 28;
+
+  return Math.max(1, Math.round(score));
+}
+
+function distanceBetween(a,b){
+  if(!a.lat || !a.lng || !b.lat || !b.lng) return 999;
+  const dx = a.lat - b.lat;
+  const dy = a.lng - b.lng;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+function pickFoodStop(rides){
+  if(userFoodPlan === "skip-food") return null;
+
+  const restaurants = rides.filter(r =>
+    r.type === "food" &&
+    r.is_open &&
+    r.lat &&
+    r.lng &&
+    !completedRideKeys.includes(rideKey(r)) &&
+    !(userPrefs.thrill === "easy" && r.servesAlcohol)
+  );
+
+  if(!restaurants.length) return null;
+
+  if(selectedFoodName){
+    return restaurants.find(r => r.name === selectedFoodName) || null;
+  }
+
+  const rideRoute = rides
+    .filter(r => r.type !== "food" && r.is_open && r.lat && r.lng && !completedRideKeys.includes(rideKey(r)))
+    .map(r => ({...r, score: calculateRideScore(r)}))
+    .sort((a,b) => b.score - a.score)
+    .slice(0,6);
+
+  return restaurants
+    .map(food => {
+      const nearbyBonus = rideRoute.reduce((best, ride) => {
+        const dist = distanceBetween(food, ride);
+        return Math.max(best, 40 - dist * 120000);
+      }, 0);
+
+      return {
+        ...food,
+        score: 80 - estimateFoodDelay(food) * 0.8 + nearbyBonus
+      };
+    })
+    .sort((a,b) => b.score - a.score)[0];
+}
+
+function buildOptimizedRoute(rides){
+  let candidates = rides
+    .filter(r => r.type !== "food" && r.is_open && r.lat && r.lng && !completedRideKeys.includes(rideKey(r)))
+    .map(r => ({
+      ...r,
+      score: calculateRideScore(r) + Math.random() * 6
+    }));
+
+  if(!candidates.length) return [];
+
+  const walkPenalty =
+    userPrefs.walking === "low" ? 26000 :
+    userPrefs.walking === "max" ? 8000 :
+    15000;
+
+  const start = {
+    lat:PARK_CENTERS[selectedPark][0],
+    lng:PARK_CENTERS[selectedPark][1]
+  };
+
+  candidates = candidates
+    .map(r => ({
+      ...r,
+      routeScore:r.score - distanceBetween(start,r) * walkPenalty
+    }))
+    .sort((a,b) => b.routeScore - a.routeScore);
+
+  const route = [candidates.shift()];
+
+  while(route.length < 8 && candidates.length){
+    const current = route[route.length - 1];
+
+    candidates = candidates
+      .map(r => ({
+        ...r,
+        routeScore:
+          r.score
+          + (mustRideNames.includes(r.name) ? 35 : 0)
+          - distanceBetween(current,r) * walkPenalty
+      }))
+      .sort((a,b) => b.routeScore - a.routeScore);
+
+    route.push(candidates.shift());
+  }
+
+  const foodStop = pickFoodStop(rides);
+
+  if(foodStop){
+    const insertIndex = userFoodPlan === "eat-early" ? 2 : 4;
+    route.splice(Math.min(insertIndex, route.length), 0, {
+      ...foodStop,
+      score:90,
+      food_time:userFoodPlan === "eat-early" ? "Early meal stop" : "Later meal stop"
+    });
+  }
+
+  return route;
+}
+
+function calculateTimeSaved(openRides){
+  if(!openRides.length) return "0.0";
+
+  const allAvgWait = latestRides
+    .filter(r => r.name && !completedRideKeys.includes(rideKey(r)))
+    .reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, latestRides.filter(r => r.is_open).length);
+
+  const routeAvgWait = openRides
+    .slice(0,8)
+    .reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, openRides.slice(0,8).length);
+
+  const savedMinutes = Math.max(0, (allAvgWait - routeAvgWait) * userPrefs.parkHours * 1.8);
+
+  return Math.max(0.3, savedMinutes / 60).toFixed(1);
+}
+
+function calculateRouteQuality(openRides){
+  if(!openRides.length) return 0;
+
+  const avgScore = openRides
+    .slice(0,8)
+    .reduce((sum,r)=>sum+r.score,0) / Math.max(1, openRides.slice(0,8).length);
+
+  return Math.min(99, Math.max(55, Math.round(avgScore)));
+}
+
+function calculateLineAvoidance(openRides){
+  if(!openRides.length) return 0;
+
+  const badWaits = openRides.filter(r => r.wait_time >= 45).length;
+  const score = 100 - badWaits * 12;
+
+  return Math.max(50, Math.min(98, score));
+}
+
+function calculateWalkEfficiency(openRides){
+  if(!openRides.length) return 0;
+
+  let base = 82;
+
+  if(userPrefs.walking === "low") base += 12;
+  if(userPrefs.walking === "balanced") base += 5;
+  if(userPrefs.walking === "max") base -= 5;
+
+  return Math.max(55, Math.min(98, base));
+}
+
+/* ---------- Route actions ---------- */
+function renderRoute(){
+  updateUI();
+  refreshMapMarkers();
+  drawOptimizedRoute();
+}
+
+function reevaluateRoute(){
+  frozenRoute = buildOptimizedRoute(latestRides);
+  renderRoute();
+
+  const btn = document.getElementById("reevaluateBtn");
+  btn.textContent = "Route updated";
+  setTimeout(() => btn.textContent = "Reevaluate route", 1000);
+}
+
+function completeRide(key){
+  if(!completedRideKeys.includes(key)){
+    completedRideKeys.push(key);
+  }
+
+  document.querySelectorAll(`[data-ride="${CSS.escape(key)}"]`).forEach(row => {
+    row.querySelector(".check")?.classList.add("done");
+    row.classList.add("leaving");
+  });
+
+  const goNow = document.getElementById("goNowCheck");
+  if(goNow.dataset.key === key) goNow.classList.add("done");
+
+  setTimeout(() => {
+    goNow.classList.remove("done");
+    frozenRoute = buildOptimizedRoute(latestRides);
+    renderRoute();
+  }, 400);
+}
+
+function togglePriorityItem(name){
+  const item = latestRides.find(r => r.name === name);
+
+  if(item && item.type === "food"){
+    selectedFoodName = selectedFoodName === name ? null : name;
+  } else if(mustRideNames.includes(name)){
+    mustRideNames = mustRideNames.filter(r => r !== name);
+  } else {
+    mustRideNames.push(name);
+  }
+
+  frozenRoute = buildOptimizedRoute(latestRides);
+  renderRoute();
+}
+
+/* ---------- Map ---------- */
+function initParkMap(){
+  if(typeof L === "undefined"){
+    setMapStatus("The map couldn’t load. Check your connection, then reload the page.");
+    return;
+  }
+
+  parkMap = L.map("liveParkMap", { zoomControl:false })
+    .setView(PARK_CENTERS[selectedPark], 16);
+
+  L.control.zoom({ position:"topright" }).addTo(parkMap);
+
+  // OpenStreetMap tiles need no API key; CSS darkens them to match the app.
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(parkMap);
+}
+
+function setMapStatus(message){
+  const el = document.getElementById("mapStatus");
+  el.textContent = message || "";
+  el.classList.toggle("hidden", !message);
+}
+
+function clearMarkers(){
+  rideMarkers.forEach(m => parkMap.removeLayer(m));
+  rideMarkers = [];
+}
+
+function refreshMapMarkers(){
+  if(!parkMap) return;
+  clearMarkers();
+
+  const stops = currentStops();
+  const stopKeys = new Set(stops.map(rideKey));
+
+  latestRides
+    .filter(r => r.type !== "food" && !stopKeys.has(rideKey(r)))
+    .forEach(r => addMarker(r, dotIcon(r), 0));
+
+  stops.forEach((r,i) => addMarker(r, pinIcon(r,i), 1000 - i));
+}
+
+function dotIcon(ride){
+  const cls = ride.is_open ? waitClass(ride.wait_time) : "closed";
+  return L.divIcon({ className:"", html:`<div class="dot ${cls}"></div>`, iconSize:[12,12], iconAnchor:[6,6] });
+}
+
+function pinIcon(ride, index){
+  const size = index === 0 ? 34 : 28;
+  const cls = ["pin", ride.type === "food" ? "food" : "", index === 0 ? "first" : ""].join(" ").trim();
+  return L.divIcon({ className:"", html:`<div class="${cls}">${index + 1}</div>`, iconSize:[size,size], iconAnchor:[size/2,size/2] });
+}
+
+function addMarker(ride, icon, zIndexOffset){
+  if(!ride.lat || !ride.lng) return;
+
+  const status =
+    ride.type === "food" ? "Meal stop" :
+    !ride.is_open ? "Closed" :
+    ride.wait_time > 0 ? `${ride.wait_time} min wait` : "No wait";
+
+  const marker = L.marker([ride.lat, ride.lng], { icon, zIndexOffset, title:ride.name }).addTo(parkMap);
+  marker.bindPopup(`<strong>${esc(ride.name)}</strong><br>${status}`);
+  rideMarkers.push(marker);
+}
+
+function drawOptimizedRoute(){
+  if(!parkMap) return;
+
+  routeLayers.forEach(layer => parkMap.removeLayer(layer));
+  routeLayers = [];
+
+  const coords = currentStops()
+    .filter(r => r.lat && r.lng)
+    .map(r => [r.lat, r.lng]);
+
+  parkMap.invalidateSize();
+
+  if(coords.length < 2){
+    fitToRides();
+    return;
+  }
+
+  // Stacked strokes make a neon tube: wide soft haze, tighter glow, bright core, white-hot center.
+  const style = { color:"#aeff00", lineCap:"round", lineJoin:"round", interactive:false };
+  const haze = L.polyline(coords, { ...style, weight:22, opacity:.08 }).addTo(parkMap);
+  const glow = L.polyline(coords, { ...style, weight:12, opacity:.2 }).addTo(parkMap);
+  const line = L.polyline(coords, { ...style, weight:4, opacity:1 }).addTo(parkMap);
+  const core = L.polyline(coords, { ...style, color:"#f4ffd6", weight:1.5, opacity:.85 }).addTo(parkMap);
+  routeLayers = [haze, glow, line, core];
+
+  parkMap.fitBounds(line.getBounds(), { padding:[56,56] });
+}
+
+function fitToRides(){
+  const points = latestRides.filter(r => r.type !== "food" && r.lat && r.lng).map(r => [r.lat, r.lng]);
+  if(points.length) parkMap.fitBounds(points, { padding:[32,32] });
+}
+
+/* ---------- Data ---------- */
+function cleanRideName(name){
+  return String(name || "")
+    .replace(/^"+|"+$/g, "")
+    .replace(/[“”]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function getJSON(url){
+  const res = await fetch(url);
+  if(!res.ok) throw new Error(`ThemeParks.wiki returned ${res.status}`);
+  return res.json();
+}
+
+async function fetchLiveWaitTimes(){
+  const entityId = PARK_ENTITY_IDS[selectedPark];
+  const refreshBtn = document.getElementById("refreshBtn");
+  refreshBtn.disabled = true;
+  refreshBtn.textContent = "Refreshing…";
+
+  try{
+    if(!parkMap) initParkMap();
+
+    const [data, childrenData] = await Promise.all([
+      getJSON(`https://api.themeparks.wiki/v1/entity/${entityId}/live`),
+      getJSON(`https://api.themeparks.wiki/v1/entity/${entityId}/children`)
+    ]);
+
+    const locationMap = {};
+    childrenData.children.forEach(c => {
+      if(c.location){
+        locationMap[c.id] = {
+          lat:c.location.latitude,
+          lng:c.location.longitude
+        };
+      }
+    });
+
+    const attractions = data.liveData
+      .filter(r => r.entityType === "ATTRACTION")
+      .map(r => {
+        const loc = locationMap[r.id] || {};
+        return {
+          id:r.id,
+          name:cleanRideName(r.name),
+          type:"ride",
+          is_open:r.status === "OPERATING",
+          wait_time:Number(r.queue?.STANDBY?.waitTime ?? 0),
+          lat:loc.lat,
+          lng:loc.lng
+        };
+      });
+
+    const restaurants = childrenData.children
+      .filter(r =>
+        r.entityType === "RESTAURANT" &&
+        !r.name.toLowerCase().includes("refill") &&
+        !r.name.toLowerCase().includes("drink station") &&
+        !r.name.toLowerCase().includes("coca-cola")
+      )
+      .map(r => {
+        const name = r.name.toLowerCase();
+
+        return {
+          id:r.id,
+          name:cleanRideName(r.name),
+          type:"food",
+          is_open:true,
+          wait_time:0,
+          lat:r.location?.latitude,
+          lng:r.location?.longitude,
+          servesAlcohol:
+            name.includes("bar") ||
+            name.includes("brew") ||
+            name.includes("pub") ||
+            name.includes("saloon") ||
+            name.includes("tavern") ||
+            name.includes("cantina")
+        };
+      })
+      .filter(r => r.lat && r.lng);
+
+    latestRides = [...attractions, ...restaurants];
+    frozenRoute = buildOptimizedRoute(latestRides);
+
+    document.getElementById("nextRetry").classList.add("hidden");
+    renderRoute();
+
+    previousWaits = Object.fromEntries(latestRides.map(r => [r.name, r.wait_time]));
+
+  }catch(err){
+    console.error(err);
+    showLoadError();
+  }finally{
+    refreshBtn.disabled = false;
+    refreshBtn.textContent = "Refresh";
+  }
+}
+
+function showLoadError(){
+  const lastUpdated = document.getElementById("lastUpdated");
+
+  if(latestRides.length){
+    lastUpdated.textContent = "Couldn’t refresh. Showing the last live data.";
+    return;
+  }
+
+  lastUpdated.textContent = "Live data didn’t load";
+  document.getElementById("liveBadge").classList.add("off");
+  document.getElementById("liveBadge").textContent = "Offline";
+  document.getElementById("nextLabel").textContent = "Something went wrong";
+  document.getElementById("navMain").textContent = "Couldn’t load live wait times";
+  document.getElementById("navSub").textContent = "ThemeParks.wiki didn’t respond. Check your connection, then try again.";
+  document.getElementById("nextWait").textContent = "";
+  document.getElementById("goNowCheck").classList.add("hidden");
+  document.getElementById("routeConfidence").classList.add("hidden");
+  document.getElementById("nextRetry").classList.remove("hidden");
+  document.getElementById("rideList").innerHTML = `<p class="empty">Your route will appear here once live data loads.</p>`;
+}
+
+/* ---------- Rendering ---------- */
+function updateUI(){
+  const stops = currentStops();
+  const anyOpen = latestRides.some(r => r.type !== "food" && r.is_open);
+
+  document.getElementById("lastUpdated").textContent =
+    "Updated " + new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+
+  const badge = document.getElementById("liveBadge");
+  badge.classList.toggle("off", !anyOpen);
+  badge.textContent = anyOpen ? "Live" : "Closed";
+
+  setMapStatus(anyOpen ? "" : `${selectedPark} is closed right now. The map shows where every ride is.`);
+
+  updateNavigationMode(stops, anyOpen);
+  updateRouteConfidence(stops);
+  updateTrustLayer(stops, anyOpen);
+  renderRouteList(stops, anyOpen);
+  renderMustRideList(latestRides);
+  updateAI(stops, anyOpen);
+  updateMetrics(stops);
+  updateWarRoom(stops);
+}
+
+function updateNavigationMode(stops, anyOpen){
+  const label = document.getElementById("nextLabel");
+  const main = document.getElementById("navMain");
+  const sub = document.getElementById("navSub");
+  const wait = document.getElementById("nextWait");
+  const check = document.getElementById("goNowCheck");
+  const current = stops[0];
+  const next = stops[1];
+
+  if(!current){
+    check.classList.add("hidden");
+    wait.textContent = "";
+
+    if(!anyOpen){
+      label.textContent = "Park closed";
+      main.textContent = `${selectedPark} is closed right now`;
+      sub.textContent = "No rides are reporting live waits. Your route builds automatically once rides open, or you can pick another park in Settings.";
+    } else {
+      label.textContent = "Route complete";
+      main.textContent = "You’ve cleared your route";
+      sub.textContent = "Every open ride on your list is done. Star more rides below to keep going.";
+    }
+    return;
+  }
+
+  label.textContent = current.type === "food" ? "Next up: meal stop" : "Next up";
+  check.classList.remove("hidden");
+  check.dataset.key = rideKey(current);
+  check.setAttribute("aria-label", `Mark ${current.name} as done`);
+
+  main.textContent = current.name;
+  sub.textContent = next ? `Then ${next.name}` : "Last stop on your route";
+
+  if(current.type === "food"){
+    wait.className = "next-wait meal";
+    wait.textContent = "Meal";
+  } else {
+    wait.className = "next-wait " + waitClass(current.wait_time);
+    wait.innerHTML = current.wait_time > 0 ? `${current.wait_time}<span class="unit">min</span>` : `<span class="no-wait">No wait</span>`;
+  }
+}
+
+function updateRouteConfidence(stops){
+  const el = document.getElementById("routeConfidence");
+  const routeRides = stops.filter(r => r.type !== "food").slice(0,3);
+
+  el.classList.toggle("hidden", routeRides.length < 2);
+  if(routeRides.length < 2) return;
+
+  const avgWait = Math.round(routeRides.reduce((sum,r)=>sum + r.wait_time, 0) / routeRides.length);
+
+  const mode =
+    userPrefs.walking === "low" ? "minimal walking" :
+    userPrefs.walking === "max" ? "maximum rides" :
+    "low waits and smart walking";
+
+  el.textContent = `Optimized for ${mode}. Your next 3 rides average ${avgWait} min.`;
+}
+
+function updateTrustLayer(stops, anyOpen){
+  const el = document.getElementById("trustInline");
+  const allOpen = latestRides.filter(r => r.is_open && r.type !== "food");
+  const routeRides = stops.filter(r => r.type !== "food").slice(0,6);
+
+  let message;
+
+  if(!anyOpen){
+    message = "No rides are running right now";
+  } else if(!routeRides.length){
+    message = "Route complete";
+  } else {
+    const parkAvg = allOpen.reduce((sum,r)=>sum+r.wait_time,0) / allOpen.length;
+    const routeAvg = routeRides.reduce((sum,r)=>sum+r.wait_time,0) / routeRides.length;
+
+    const savedMinutes = Math.max(0, Math.round((parkAvg - routeAvg) * routeRides.length));
+    const skippedHigh = allOpen.filter(r =>
+      r.wait_time >= 45 && !routeRides.some(x => x.name === r.name)
+    ).length;
+
+    if(savedMinutes > 25) message = `Beating the park average by about ${savedMinutes} min`;
+    else if(skippedHigh >= 2) message = `Skipping ${skippedHigh} long waits`;
+    else message = "Optimized for low waits and smooth walking";
+  }
+
+  el.style.opacity = 0;
+  setTimeout(() => {
+    el.textContent = message;
+    el.style.opacity = 1;
+  }, 120);
+}
+
+function renderRouteList(stops, anyOpen){
+  const el = document.getElementById("rideList");
+
+  if(!stops.length){
+    el.innerHTML = `<p class="empty">${anyOpen ? "Nothing left on your route." : "Your route will appear here when rides open."}</p>`;
+    return;
+  }
+
+  el.innerHTML = stops.slice(0,10).map((r,i) => {
+    const key = esc(rideKey(r));
+    const food = r.type === "food";
+
+    return `
+      <div class="row" data-ride="${key}">
+        <button class="check" data-action="complete" data-key="${key}" aria-label="Mark ${esc(r.name)} as done">${CHECK_SVG}</button>
+        <span class="stop-num${food ? " food" : ""}">${i + 1}</span>
+        <span class="row-name">${esc(r.name)}${food ? `<span class="row-sub">${esc(r.food_time)}</span>` : ""}</span>
+        <span class="wait ${food ? "meal" : waitClass(r.wait_time)}">${food ? "Meal" : waitText(r.wait_time)}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function rideCategory(name){
+  const n = String(name || "").toLowerCase();
+  const item = latestRides.find(r => r.name === name);
+  if(item && item.type === "food") return "Food";
+
+  if(n.includes("mountain") || n.includes("coaster") || n.includes("tower") || n.includes("thunder") || n.includes("flight") || n.includes("rise") || n.includes("guardians") || n.includes("test track") || n.includes("millennium") || n.includes("slinky dog")) return "Thrill";
+
+  if(n.includes("dumbo") || n.includes("carousel") || n.includes("small world") || n.includes("princess") || n.includes("winnie") || n.includes("peter pan") || n.includes("little mermaid") || n.includes("mickey") || n.includes("mania")) return "Kids";
+
+  if(n.includes("show") || n.includes("theater") || n.includes("philharmagic") || n.includes("country bear") || n.includes("hall") || n.includes("tiki") || n.includes("carousel of progress") || n.includes("presents")) return "Shows";
+
+  return "Other";
+}
+
+function popularityScore(name){
+  const n = name.toLowerCase();
+
+  if(n.includes("rise") || n.includes("flight") || n.includes("guardians")) return 100;
+  if(n.includes("space") || n.includes("slinky") || n.includes("tower")) return 95;
+  if(n.includes("thunder") || n.includes("pirates") || n.includes("haunted")) return 90;
+  if(n.includes("jungle") || n.includes("peter pan")) return 85;
+
+  return 60;
+}
+
+function renderMustRideList(rides){
+  const el = document.getElementById("mustRideList");
+  const groups = { Thrill:[], Kids:[], Shows:[], Food:[], Other:[] };
+  const openGroups = [...el.querySelectorAll("details[open]")].map(d => d.dataset.group);
+
+  rides
+    .filter(r => r && r.name && !completedRideKeys.includes(rideKey(r)))
+    .sort((a,b) => popularityScore(b.name) - popularityScore(a.name))
+    .forEach(r => groups[rideCategory(r.name)].push(r));
+
+  el.innerHTML = Object.keys(groups).filter(g => groups[g].length).map(group => `
+    <details class="group" data-group="${group}"${openGroups.includes(group) ? " open" : ""}>
+      <summary>${GROUP_LABELS[group]}<span class="count">${groups[group].length}</span></summary>
+      <div class="list">
+        ${groups[group].map(r => {
+          const food = r.type === "food";
+          const on = mustRideNames.includes(r.name) || selectedFoodName === r.name;
+          const status = food ? `~${estimateFoodDelay(r)} min` : r.is_open ? waitText(r.wait_time) : "Closed";
+          const cls = food ? "meal" : r.is_open ? waitClass(r.wait_time) : "closed";
+          const action = on ? "Remove" : "Add";
+          const target = food ? "as your meal stop" : "as a must-ride";
+
+          return `
+            <div class="row">
+              <button class="star${on ? " on" : ""}" data-action="star" data-name="${esc(r.name)}" aria-pressed="${on}" aria-label="${action} ${esc(r.name)} ${target}">${STAR_SVG}</button>
+              <span class="row-name">${esc(r.name)}</span>
+              <span class="wait ${cls}">${status}</span>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </details>
+  `).join("");
+}
+
+function updateAI(stops, anyOpen){
+  const ids = ["aiNext","aiAlert","spikeAlert","aiProjection","insiderTip"];
+  const rides = stops.filter(r => r.type !== "food");
+  const best = stops[0];
+
+  if(!best){
+    const message = anyOpen ? "Your route is complete." : "No live route while the park is closed.";
+    ids.forEach(id => document.getElementById(id).textContent = message);
+    return;
+  }
+
+  const worst = longestWait(rides);
+
+  const droppedRide = latestRides.find(r => {
+    const oldWait = previousWaits[r.name];
+    return oldWait && oldWait >= 45 && oldWait - r.wait_time >= 20;
+  });
+
+  const avgRouteWait = rides.slice(0,6)
+    .reduce((sum,r)=>sum+r.wait_time,0) / Math.max(1, rides.slice(0,6).length);
+  const projectedRides = Math.max(1, Math.floor((userPrefs.parkHours * 60) / (avgRouteWait + 12)));
+
+  document.getElementById("aiNext").innerHTML = best.type === "food"
+    ? `Head to <strong>${esc(best.name)}</strong> for your meal stop.`
+    : `Head to <strong>${esc(best.name)}</strong> (${best.wait_time > 0 ? best.wait_time + " min wait" : "no wait"}).`;
+
+  document.getElementById("aiAlertTitle").textContent = droppedRide ? "Wait drop" : "Crowd alert";
+  document.getElementById("aiAlert").innerHTML = droppedRide
+    ? `<strong>${esc(droppedRide.name)}</strong> fell from ${previousWaits[droppedRide.name]} to ${droppedRide.wait_time} min.`
+    : worst ? `Avoid <strong>${esc(worst.name)}</strong> for now (${worst.wait_time} min wait).` : "No long waits on your route.";
+
+  document.getElementById("aiProjection").innerHTML =
+    `About <strong>${projectedRides} rides</strong> at your current pace.`;
+
+  const spikeRide = detectLineSpike(stops);
+  document.getElementById("spikeAlert").innerHTML = spikeRide
+    ? `Ride <strong>${esc(spikeRide.name)}</strong> now. Its wait jumped ${spikeRide.jump} min and may keep climbing.`
+    : "No spikes detected. Your route looks stable.";
+
+  document.getElementById("insiderTip").textContent = generateInsiderTip(stops);
+}
+
+function updateMetrics(stops){
+  const meters = [
+    ["routeQuality","barRoute",calculateRouteQuality],
+    ["crowdAvoid","barAvoid",calculateLineAvoidance],
+    ["walkEff","barWalk",calculateWalkEfficiency]
+  ];
+
+  if(!stops.length){
+    document.getElementById("sessionTime").textContent = "--";
+    meters.forEach(([valueId, barId]) => {
+      document.getElementById(valueId).textContent = "--";
+      document.getElementById(barId).style.width = "0%";
+    });
+  } else {
+    document.getElementById("sessionTime").innerHTML = `${calculateTimeSaved(stops)}<span class="unit">hours</span>`;
+    meters.forEach(([valueId, barId, calc]) => {
+      const value = calc(stops);
+      document.getElementById(valueId).textContent = value + "%";
+      document.getElementById(barId).style.width = value + "%";
+    });
+  }
+
+  updateDayStatus(stops);
+  updateFoodTiming();
+}
+
+function updateFoodTiming(){
+  const banner = document.getElementById("foodTimingBanner");
+
+  if(userFoodPlan === "skip-food"){
+    banner.className = "banner info";
+    banner.textContent = "Food skipped. Your route focuses fully on rides.";
+    return;
+  }
+
+  const hour = new Date().getHours();
+  const currentFood = frozenRoute.find(r => r.type === "food");
+  const waitEstimate = currentFood ? estimateFoodDelay(currentFood) : 25;
+
+  let bestHour;
+
+  if(hour < 11) bestHour = 11;
+  else if(hour >= 11 && hour <= 13) bestHour = 14;
+  else if(hour < 17) bestHour = 16;
+  else if(hour >= 17 && hour <= 19) bestHour = 20;
+  else bestHour = hour;
+
+  const bestTime = new Date();
+  bestTime.setHours(bestHour, 40, 0, 0);
+  const timeText = bestTime.toLocaleTimeString([], { hour:"numeric", minute:"2-digit" });
+
+  const peakRush = (hour >= 11 && hour <= 13) || (hour >= 17 && hour <= 19);
+
+  if(peakRush){
+    banner.className = "banner warn";
+    banner.innerHTML = `Food lines are about ${waitEstimate} min right now. Eat around <strong>${timeText}</strong> instead.`;
+  } else {
+    banner.className = "banner info";
+    banner.textContent = `Good time to eat. Expect about ${waitEstimate} min near your route.`;
+  }
+}
+
+function updateDayStatus(stops){
+  const banner = document.getElementById("dayStatusBanner");
+  const allOpen = latestRides.filter(r => r.is_open && r.type !== "food");
+  const routeRides = stops.filter(r => r.type !== "food").slice(0,6);
+
+  if(!allOpen.length){
+    banner.className = "banner";
+    banner.textContent = "No rides are running right now.";
+    return;
+  }
+
+  if(!routeRides.length){
+    banner.className = "banner good";
+    banner.textContent = "Your route is complete.";
+    return;
+  }
+
+  const parkAvg = allOpen.reduce((sum,r)=>sum+r.wait_time,0) / allOpen.length;
+  const routeAvg = routeRides.reduce((sum,r)=>sum+r.wait_time,0) / routeRides.length;
+  const advantage = Math.round(((parkAvg - routeAvg) / Math.max(1, parkAvg)) * 100);
+
+  if(advantage >= 15){
+    banner.className = "banner good";
+    banner.innerHTML = `Your route beats the park’s average wait by <strong>${advantage}%</strong>.`;
+  } else {
+    banner.className = "banner warn";
+    banner.textContent = "Your route is close to the park average. Try Reevaluate route on the Live Map.";
+  }
+}
+
+function updateWarRoom(stops){
+  const rides = stops.filter(r => r.type !== "food");
+  const best = rides[0];
+  const second = rides[1];
+  const worst = longestWait(rides);
+
+  if(!best){
+    ["routeMove","forecastWait","walkScore"].forEach(id => document.getElementById(id).textContent = "--");
+    ["routeText","forecastText","walkText"].forEach(id => document.getElementById(id).textContent = "No live route right now.");
+    return;
+  }
+
+  document.getElementById("routeMove").innerHTML = best.wait_time > 0 ? `${best.wait_time}<span class="unit">min</span>` : "No wait";
+  document.getElementById("routeText").textContent = `Go to ${best.name} now. It has the best route score.`;
+
+  document.getElementById("forecastWait").innerHTML = worst ? `${worst.wait_time}<span class="unit">min</span>` : "--";
+  document.getElementById("forecastText").textContent = worst ? `Avoid ${worst.name} for now.` : "Your must-rides are the only long waits left.";
+
+  document.getElementById("walkScore").textContent = second ? "Excellent" : "--";
+  document.getElementById("walkText").textContent = second ? `Pair ${best.name} with ${second.name}`.replace(/\.?$/, ".") : "Add more rides to pair nearby stops.";
+}
+</script>
+
+</body>
+</html>
