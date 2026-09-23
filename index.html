@@ -70,30 +70,34 @@ button:disabled{cursor:not-allowed}
 .btn-block{width:100%;height:48px;font-size:15px}
 
 /* ---------- Onboarding ---------- */
-#onboarding{
-  position:fixed;inset:0;z-index:2000;
-  display:flex;overflow-y:auto;
-  background:var(--bg);padding:40px 16px;
+#onboarding{position:fixed;inset:0;z-index:2000;display:flex;justify-content:center;background:var(--bg)}
+.ob{
+  width:100%;max-width:520px;height:100%;display:flex;flex-direction:column;
+  padding:max(14px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
 }
-.ob{width:100%;max-width:520px;margin:0 auto;padding-top:min(8vh,72px)}
-.ob-brand{font-family:"Syne";font-weight:800;font-size:20px;margin-bottom:32px;text-shadow:0 0 18px rgba(0,198,255,.35)}
-.ob-top{display:flex;align-items:center;justify-content:space-between;height:28px;margin-bottom:10px}
-.ob-back{color:var(--muted);font-size:14px;padding:4px 0}
-.ob-back:hover{color:var(--text)}
-.ob-count{font-size:13px;color:var(--muted)}
-.ob-progress{height:3px;background:var(--surface-2);border-radius:2px;overflow:hidden;margin-bottom:32px}
-.ob-progress{overflow:visible}
-.ob-progress div{height:100%;width:0;border-radius:2px;background:linear-gradient(90deg,#aeff00,#5bffb7);box-shadow:0 0 10px rgba(174,255,0,.6);transition:width .3s ease}
-.step h1{margin-bottom:8px}
-.lede{color:var(--muted);margin-bottom:24px;max-width:46ch}
-.ob-actions{margin-top:32px}
+.ob-bar{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;gap:14px;height:44px;flex:none}
+.ob-back{width:40px;height:40px;margin-left:-8px;border-radius:50%;display:grid;place-items:center;color:var(--text)}
+.ob-back svg{width:22px;height:22px}
+.ob-back:hover{background:var(--surface-2)}
+.ob-count{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.ob-progress{height:4px;background:var(--surface-2);border-radius:2px}
+.ob-progress div{height:100%;width:0;border-radius:2px;background:linear-gradient(90deg,#aeff00,#5bffb7);box-shadow:0 0 10px rgba(174,255,0,.6);transition:width .35s cubic-bezier(.2,.8,.2,1)}
+.ob-body{flex:1;overflow-y:auto;padding:clamp(24px,7vh,64px) 0 20px;overscroll-behavior:contain}
+.step h1{font-size:30px;margin-bottom:10px}
+.lede{color:var(--muted);margin-bottom:28px;max-width:40ch}
+.ob-actions{flex:none;padding-top:12px}
+.ob-actions .btn-block{height:54px;border-radius:14px;font-size:16px}
+.step.enter-forward{animation:step-in-forward .32s cubic-bezier(.2,.8,.2,1)}
+.step.enter-back{animation:step-in-back .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes step-in-forward{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:none}}
+@keyframes step-in-back{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:none}}
 
-.options{display:grid;gap:10px}
+.options{display:grid;gap:12px}
 .options.two{grid-template-columns:1fr 1fr}
 .options.two .option:last-child:nth-child(odd){grid-column:1 / -1}
 .option{
   display:flex;align-items:center;gap:12px;width:100%;
-  padding:14px 16px;text-align:left;
+  min-height:64px;padding:16px 18px;text-align:left;
   background:linear-gradient(180deg,#181c24,#111318);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);
   transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
@@ -103,7 +107,8 @@ button:disabled{cursor:not-allowed}
   background:linear-gradient(135deg,rgba(0,82,255,.22),rgba(174,255,0,.08));
   box-shadow:0 0 22px rgba(174,255,0,.14);
 }
-.option-icon{font-size:20px;line-height:1;flex:none}
+.option-icon{font-size:22px;line-height:1;flex:none}
+.option-title{font-size:16px}
 .option-text{display:flex;flex-direction:column;gap:2px;min-width:0}
 .option-title{font-weight:600}
 .option-desc{font-size:13px;color:var(--muted)}
@@ -113,8 +118,8 @@ button:disabled{cursor:not-allowed}
 }
 .option.selected .radio{border:5px solid var(--lime);box-shadow:0 0 10px rgba(174,255,0,.6)}
 
-.readout{display:flex;align-items:baseline;gap:10px;margin:8px 0 24px}
-.readout-num{font-family:"Syne";font-weight:800;font-size:56px;line-height:1;font-variant-numeric:tabular-nums;background:var(--neon-text);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(174,255,0,.35))}
+.readout{display:flex;flex-direction:column;align-items:center;gap:4px;margin:20px 0 36px}
+.readout-num{font-family:"Syne";font-weight:800;font-size:80px;line-height:1;font-variant-numeric:tabular-nums;background:var(--neon-text);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(174,255,0,.35))}
 .readout-unit{color:var(--muted);font-size:16px}
 input[type=range]{
   -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;
@@ -232,6 +237,10 @@ input[type=range]::-moz-range-thumb{
 .row:last-child{border-bottom:0}
 .row:hover{background:linear-gradient(90deg,rgba(174,255,0,.04),transparent)}
 .row.leaving{transform:translateX(24px);opacity:0}
+.row-enter{animation:row-in .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes row-in{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.screen:not(.hidden){animation:screen-in .22s ease}
+@keyframes screen-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .row-name{flex:1;min-width:0;font-size:14px;font-weight:500;overflow-wrap:anywhere}
 .row-sub{display:block;font-size:12px;font-weight:400;color:var(--muted)}
 .stop-num{
@@ -430,8 +439,9 @@ input[type=range]::-moz-range-thumb{
 }
 @media (max-width:420px){
   h1{font-size:24px}
+  .step h1{font-size:26px}
   .options.two{grid-template-columns:1fr}
-  .readout-num{font-size:48px}
+  .readout-num{font-size:64px}
 }
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important;animation:none!important}
@@ -442,12 +452,15 @@ input[type=range]::-moz-range-thumb{
 
 <div id="onboarding">
   <div class="ob">
-    <div class="ob-brand">RideFlow</div>
-    <div class="ob-top">
-      <button type="button" class="ob-back invisible" id="obBack">Back</button>
-      <span class="ob-count" id="obCount">Step 1 of 6</span>
-    </div>
-    <div class="ob-progress"><div id="obProgress"></div></div>
+    <header class="ob-bar">
+      <button type="button" class="ob-back invisible" id="obBack" aria-label="Back">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="ob-progress"><div id="obProgress"></div></div>
+      <span class="ob-count" id="obCount">1/6</span>
+    </header>
+
+    <div class="ob-body">
 
     <section class="step">
       <h1>Where are you heading?</h1>
@@ -513,6 +526,8 @@ input[type=range]::-moz-range-thumb{
       </div>
       <input type="hidden" id="foodPref" value="eat-late">
     </section>
+
+    </div>
 
     <div class="ob-actions">
       <button type="button" class="btn btn-block" id="obNext" disabled>Continue</button>
@@ -698,7 +713,7 @@ input[type=range]::-moz-range-thumb{
               <button type="button" data-value="skip-food">No meal</button>
             </div>
           </div>
-          <button class="btn btn-quiet" onclick="location.reload()">Start over with a new park</button>
+          <button class="btn btn-quiet" onclick="startOver()">Start over with a new park</button>
         </div>
       </section>
     </div>

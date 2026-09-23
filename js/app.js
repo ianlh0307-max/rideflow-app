@@ -4,6 +4,7 @@ import { hashSeed } from "./planner.js";
 import { isoToParkMinutes, minutesToClock, formatDuration, liveAttractions, operatingDay, PARK_TIMEZONES } from "./livedata.js";
 import { emptyRouteReason } from "./status.js";
 import { rideDetailsFor } from "./ridedata.js";
+import { saveDay, loadDay, clearDay } from "./session.js";
 
 let selectedPark = null;
 let parkMap;
@@ -24,6 +25,8 @@ let walkData = null;          // data/walkways JSON, or null when unavailable
 let rideDetails = {};
 let gps = null;               // { lat, lng, accuracy }
 let lockedNextId = null;
+let lastNextKey = null;       // Next up card cross-fades when this changes
+let fitRouteNext = true;       // re-fit the map to the route on the next draw (first plan, Reevaluate, settings)
 let shownRideIds = new Set();   // rides "Reevaluate" is steering away from; kept until settings change
 let recentPlans = [];           // optional rides of the last two plans Reevaluate replaced
 let planRequestId = 0;
@@ -77,11 +80,19 @@ function esc(value){
 /* ---------- Onboarding ---------- */
 const obSteps = [...document.querySelectorAll("#onboarding .step")];
 let obStep = 0;
+let obDirection = null;       // "forward" | "back": which way the next step slides in
 
 function renderStep(){
   obSteps.forEach((step,i) => step.classList.toggle("hidden", i !== obStep));
+  const current = obSteps[obStep];
+  current.classList.remove("enter-forward", "enter-back");
+  if(obDirection){
+    void current.offsetWidth;   // restart the slide animation
+    current.classList.add(`enter-${obDirection}`);
+  }
+  document.querySelector("#onboarding .ob-body").scrollTop = 0;
   document.getElementById("obProgress").style.width = ((obStep + 1) / obSteps.length * 100) + "%";
-  document.getElementById("obCount").textContent = `Step ${obStep + 1} of ${obSteps.length}`;
+  document.getElementById("obCount").textContent = `${obStep + 1}/${obSteps.length}`;
   document.getElementById("obBack").classList.toggle("invisible", obStep === 0);
 
   const next = document.getElementById("obNext");
@@ -109,12 +120,14 @@ function updateEndTimeNote(){
 document.getElementById("obNext").addEventListener("click", () => {
   if(obStep === obSteps.length - 1) return launchApp();
   obStep++;
+  obDirection = "forward";
   renderStep();
 });
 
 document.getElementById("obBack").addEventListener("click", () => {
   if(obStep > 0){
     obStep--;
+    obDirection = "back";
     renderStep();
   }
 });
@@ -137,7 +150,19 @@ document.querySelectorAll("#onboarding .options").forEach(group => {
     }
     else document.getElementById(group.dataset.field).value = option.dataset.value;
 
+    obDirection = null;   // selecting an answer shouldn't replay this step's slide-in
     renderStep();
+
+    // Picking an answer moves on by itself, except on the last step, which builds the route.
+    const step = obStep;
+    if(step < obSteps.length - 1){
+      setTimeout(() => {
+        if(obStep !== step) return;
+        obStep++;
+        obDirection = "forward";
+        renderStep();
+      }, 280);
+    }
   });
 });
 
@@ -169,16 +194,58 @@ async function launchApp(){
   userFoodPlan = document.getElementById("foodPref").value;
 
   document.getElementById("onboarding").classList.add("hidden");
-  document.getElementById("parkName").textContent = selectedPark;
-
   await (parkMetaReady ??= loadParkMeta(selectedPark));
   planStartMin = parkNow();
+  startDay();
+}
+
+async function startDay(){
+  document.getElementById("onboarding").classList.add("hidden");
+  document.getElementById("parkName").textContent = selectedPark;
   renderSettings();
+  persistDay();
   await loadParkData();
   requestLocation();
 
   fetchLiveWaitTimes();
   setInterval(fetchLiveWaitTimes, 300000);
+}
+
+/* ---------- Remembering the day across refreshes ---------- */
+function deviceStorage(){
+  try{ return window.localStorage; }catch(err){ return null; }
+}
+
+function persistDay(){
+  if(!selectedPark || planStartMin === null) return;
+  saveDay(deviceStorage(), {
+    park: selectedPark, timeZone: parkTimeZone, parkDate, closeMin: parkCloseMin, planStartMin,
+    prefs: userPrefs, food: userFoodPlan, completed: completedRideKeys, mustRideIds, selectedFoodId,
+    recentPlans, lockedNextId
+  });
+}
+
+function resumeDay(day){
+  selectedPark = day.park;
+  userPrefs = { ...day.prefs };
+  userFoodPlan = day.food;
+  parkTimeZone = day.timeZone;
+  parkDate = day.parkDate;
+  parkCloseMin = day.closeMin;
+  planStartMin = day.planStartMin;
+  completedRideKeys = [...day.completed];
+  mustRideIds = [...(day.mustRideIds || [])];
+  selectedFoodId = day.selectedFoodId ?? null;
+  recentPlans = day.recentPlans || [];
+  shownRideIds = new Set(recentPlans.flat());
+  lockedNextId = day.lockedNextId ?? null;
+  parkMetaReady = Promise.resolve();
+  startDay();
+}
+
+function startOver(){
+  clearDay(deviceStorage());
+  location.reload();
 }
 
 let youMarker = null;
@@ -480,7 +547,7 @@ function buildPlanRequest({ force, prefsChanged, unlock }){
 
 async function requestPlan({ force = false, prefsChanged = false, unlock = false } = {}){
   if(!latestRides.length || planStartMin === null) return null;
-  if(prefsChanged){ shownRideIds.clear(); recentPlans = []; }   // new settings, fresh recommendations
+  if(prefsChanged){ shownRideIds.clear(); recentPlans = []; fitRouteNext = true; }   // new settings, fresh recommendations
   const request = buildPlanRequest({ force, prefsChanged, unlock });
   const id = ++planRequestId;
   let reply = await planner.run(request, id);
@@ -511,7 +578,9 @@ function applyPlan(reply, request){
     summary: { rides:result.plan.rides, end:result.plan.end, walkMeters:result.plan.walkMeters, walkMin:result.plan.walkMin, waitMin:result.plan.waitMin },
     moved: prior.length ? result.plan.ids.filter((id, i) => prior.indexOf(id) !== i) : []
   };
-  lockedNextId = result.plan.ids[0] ?? null;}
+  lockedNextId = result.plan.ids[0] ?? null;
+  persistDay();
+}
 
 function detectLineSpike(openRides){
   const rising = openRides
@@ -639,6 +708,7 @@ async function reevaluateRoute(){
   const bringsNew = plan => !!plan && optionalRides(plan.ids).some(id => !current.includes(id));
 
   recentPlans = [current, ...recentPlans].slice(0, 2);
+  fitRouteNext = true;
   shownRideIds = new Set(recentPlans.flat());
   btn.disabled = true;
   let plan = await requestPlan({ force:true, unlock:true });
@@ -655,6 +725,7 @@ function completeRide(key){
   if(!completedRideKeys.includes(key)){
     completedRideKeys.push(key);
   }
+  persistDay();
 
   // Checking off the next stop locks the one after it (spec §6.5).
   if(planState.ids[0] === key) lockedNextId = planState.ids[1] ?? null;
@@ -771,7 +842,8 @@ function drawOptimizedRoute(){
   parkMap.invalidateSize();
 
   if(!legs.length){
-    fitToRides();
+    // Before the first plan arrives, show the park but keep the pending fit for the real route.
+    if(fitRouteNext){ fitToRides(); if(planState.summary) fitRouteNext = false; }
     return;
   }
 
@@ -787,7 +859,24 @@ function drawOptimizedRoute(){
     (isNext ? nextLeg : laterLeg).forEach(o => routeLayers.push(L.polyline(leg.coords, { ...style, ...o }).addTo(parkMap)));
   });
 
-  parkMap.fitBounds(L.latLngBounds(legs.flatMap(leg => leg.coords)), { padding:[56,56] });
+  // Re-fit only when asked; routine refreshes and check-offs keep the guest's view,
+  // gliding just enough to keep the next stop on screen.
+  if(fitRouteNext){
+    const bounds = L.latLngBounds(legs.flatMap(leg => leg.coords));
+    if(routeDrawnOnce && !prefersReducedMotion()) parkMap.flyToBounds(bounds, { padding:[56,56], duration:.8 });
+    else parkMap.fitBounds(bounds, { padding:[56,56], animate:false });
+    fitRouteNext = false;
+    routeDrawnOnce = true;
+  }else{
+    const nextStop = legs[0].coords.at(-1);
+    if(!parkMap.getBounds().pad(-0.1).contains(nextStop)) parkMap.panTo(nextStop, { animate:!prefersReducedMotion(), duration:.6 });
+  }
+}
+
+let routeDrawnOnce = false;
+
+function prefersReducedMotion(){
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 }
 
 function fitToRides(){
@@ -984,6 +1073,15 @@ function updateNavigationMode(stops, anyOpen){
     return;
   }
 
+  if(current && rideKey(current) !== lastNextKey){
+    lastNextKey = rideKey(current);
+    if(!prefersReducedMotion()){
+      document.querySelector(".next-row").animate(
+        [{ opacity:0, transform:"translateY(6px)" }, { opacity:1, transform:"none" }],
+        { duration:320, easing:"cubic-bezier(.2,.8,.2,1)" });
+    }
+  }
+
   label.textContent = current.type === "food" ? "Next up: meal stop" : "Next up";
   check.classList.remove("hidden");
   check.dataset.key = rideKey(current);
@@ -1069,6 +1167,20 @@ function updateTrustLayer(stops, anyOpen){
   }, 120);
 }
 
+function routeRowHtml(r, i){
+  const key = esc(rideKey(r));
+  const food = r.type === "food";
+  return `
+    <button class="check" data-action="complete" data-key="${key}" aria-label="Mark ${esc(r.name)} as done">${CHECK_SVG}</button>
+    <span class="stop-num${food ? " food" : ""}">${i + 1}</span>
+    <span class="row-name">${esc(r.name)}${food ? `<span class="row-sub">${esc(r.food_time)}</span>` : ""}</span>
+    <span class="eta">~${minutesToClock(r.arrive)}</span>
+    <span class="wait ${food ? "meal" : waitClass(r.wait_time)}">${food ? "Meal" : waitText(r.wait_time)}</span>
+  `;
+}
+
+// Rows are updated in place instead of rebuilt: kept rows glide to their new position,
+// new rows fade in, and dropped rows leave without making the list jump.
 function renderRouteList(stops, anyOpen){
   const el = document.getElementById("rideList");
 
@@ -1077,21 +1189,37 @@ function renderRouteList(stops, anyOpen){
     document.getElementById("routeSummary").textContent = "";
     return;
   }
+  el.querySelector(".empty")?.remove();
 
-  el.innerHTML = stops.slice(0,10).map((r,i) => {
-    const key = esc(rideKey(r));
-    const food = r.type === "food";
+  const wanted = stops.slice(0, 10);
+  const keep = new Set(wanted.map(rideKey));
+  const rows = new Map([...el.querySelectorAll(".row[data-ride]")].map(row => [row.dataset.ride, row]));
+  const before = new Map([...rows].map(([key, row]) => [key, row.getBoundingClientRect().top]));
 
-    return `
-      <div class="row" data-ride="${key}">
-        <button class="check" data-action="complete" data-key="${key}" aria-label="Mark ${esc(r.name)} as done">${CHECK_SVG}</button>
-        <span class="stop-num${food ? " food" : ""}">${i + 1}</span>
-        <span class="row-name">${esc(r.name)}${food ? `<span class="row-sub">${esc(r.food_time)}</span>` : ""}</span>
-        <span class="eta">~${minutesToClock(r.arrive)}</span>
-        <span class="wait ${food ? "meal" : waitClass(r.wait_time)}">${food ? "Meal" : waitText(r.wait_time)}</span>
-      </div>
-    `;
-  }).join("");
+  rows.forEach((row, key) => { if(!keep.has(key)) row.remove(); });
+
+  wanted.forEach((r, i) => {
+    const key = rideKey(r);
+    let row = rows.get(key);
+    if(!row){
+      row = document.createElement("div");
+      row.className = "row row-enter";
+      row.dataset.ride = key;
+      row.addEventListener("animationend", () => row.classList.remove("row-enter"), { once:true });
+    }
+    const html = routeRowHtml(r, i);
+    if(row.dataset.sig !== html){ row.innerHTML = html; row.dataset.sig = html; }
+    el.appendChild(row);
+  });
+
+  if(!prefersReducedMotion()){
+    el.querySelectorAll(".row[data-ride]").forEach(row => {
+      const top = before.get(row.dataset.ride);
+      if(top === undefined) return;
+      const dy = top - row.getBoundingClientRect().top;
+      if(Math.abs(dy) > 1) row.animate([{ transform:`translateY(${dy}px)` }, { transform:"none" }], { duration:320, easing:"cubic-bezier(.2,.8,.2,1)" });
+    });
+  }
 
   const s = planState.summary;
   document.getElementById("routeSummary").textContent = s && s.rides
@@ -1302,4 +1430,8 @@ function updateWarRoom(stops){
 }
 
 // index.html's inline onclick handlers call these; module scope isn't global.
-Object.assign(window, { showScreen, toggleMobileMenu, fetchLiveWaitTimes, reevaluateRoute, launchApp, centerOnMe });
+Object.assign(window, { showScreen, toggleMobileMenu, fetchLiveWaitTimes, reevaluateRoute, launchApp, centerOnMe, startOver });
+
+// A refresh during the same park day goes straight back to the map.
+const savedDay = loadDay(deviceStorage(), new Date());
+if(savedDay) resumeDay(savedDay);
