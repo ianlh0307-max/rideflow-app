@@ -310,6 +310,24 @@ input[type=range]::-moz-range-thumb{
 .dot.med{background:var(--amber);box-shadow:0 0 8px rgba(255,184,0,.8)}
 .dot.high{background:var(--red);box-shadow:0 0 8px rgba(255,90,90,.8)}
 .dot.closed{background:#3a4150}
+.pin.moved{animation:pin-flash 1.2s ease-out 1}
+@keyframes pin-flash{
+  0%{transform:scale(1.5);box-shadow:0 0 0 8px rgba(174,255,0,.5),0 0 30px rgba(174,255,0,.9)}
+  100%{transform:scale(1)}
+}
+.you-dot{
+  width:18px;height:18px;border-radius:50%;background:var(--cyan);border:3px solid #fff;
+  box-shadow:0 0 0 0 rgba(0,198,255,.6),0 0 16px rgba(0,198,255,.8);animation:you-pulse 2s ease-out infinite;
+}
+@keyframes you-pulse{
+  0%{box-shadow:0 0 0 0 rgba(0,198,255,.6),0 0 16px rgba(0,198,255,.8)}
+  100%{box-shadow:0 0 0 14px rgba(0,198,255,0),0 0 16px rgba(0,198,255,.8)}
+}
+.map-locate{
+  position:absolute;top:88px;right:10px;z-index:500;width:34px;height:34px;border-radius:8px;
+  display:grid;place-items:center;background:#fff;color:#0a0c11;box-shadow:0 1px 5px rgba(0,0,0,.4);
+}
+.map-locate svg{width:20px;height:20px}
 
 .leaflet-container{background:var(--surface);font-family:inherit}
 /* Half-pixel overlap hides hairline gaps between tiles. */
@@ -511,6 +529,9 @@ input[type=range]::-moz-range-thumb{
           <div class="map-wrap">
             <div id="liveParkMap" role="region" aria-label="Park map"></div>
             <div id="mapStatus" class="map-status hidden"></div>
+            <button id="locateBtn" class="map-locate hidden" onclick="centerOnMe()" aria-label="Center map on your location">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </button>
             <div class="map-legend" aria-hidden="true">
               <span><i class="pin"></i>Your route</span>
               <span><i class="dot low"></i>15 min or less</span>

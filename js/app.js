@@ -164,7 +164,58 @@ async function launchApp(){
   setInterval(fetchLiveWaitTimes, 300000);
 }
 
-function requestLocation(){}
+let youMarker = null;
+let youAccuracy = null;
+
+function requestLocation(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.watchPosition(
+    pos => {
+      const before = gpsState();
+      gps = { lat:pos.coords.latitude, lng:pos.coords.longitude, accuracy:pos.coords.accuracy };
+      drawYouAreHere();
+      // The first fix often lands after the first plan; re-plan when usable GPS appears
+      // or moves in/out of the park, but not on every small movement.
+      if(gpsState() !== before) requestPlan();
+    },
+    () => {
+      gps = null;
+      drawYouAreHere();
+    },
+    { enableHighAccuracy:true, maximumAge:30000, timeout:20000 }
+  );
+}
+
+function gpsState(){
+  if(!gps || gps.accuracy > 50) return "none";
+  return insideBbox(gps) ? "inside" : "outside";
+}
+
+function drawYouAreHere(){
+  if(!parkMap) return;
+  youMarker?.remove();
+  youAccuracy?.remove();
+  youMarker = youAccuracy = null;
+
+  const show = gps && insideBbox(gps);
+  document.getElementById("locateBtn").classList.toggle("hidden", !show);
+  if(!show) return;
+
+  if(gps.accuracy > 20){
+    youAccuracy = L.circle([gps.lat, gps.lng], {
+      radius:gps.accuracy, color:"#00c6ff", weight:1, opacity:.5, fillOpacity:.08, interactive:false
+    }).addTo(parkMap);
+  }
+  youMarker = L.marker([gps.lat, gps.lng], {
+    icon: L.divIcon({ className:"", html:'<div class="you-dot"></div>', iconSize:[18,18], iconAnchor:[9,9] }),
+    zIndexOffset:2000,
+    title:"You are here"
+  }).addTo(parkMap);
+}
+
+function centerOnMe(){
+  if(gps && parkMap) parkMap.setView([gps.lat, gps.lng], 18);
+}
 
 function renderSettings(){
   document.getElementById("settingsPark").textContent = selectedPark;
@@ -619,6 +670,8 @@ function refreshMapMarkers(){
     .forEach(r => addMarker(r, dotIcon(r), 0));
 
   stops.forEach((r,i) => addMarker(r, pinIcon(r,i), 1000 - i));
+
+  drawYouAreHere();
 }
 
 function dotIcon(ride){
@@ -628,7 +681,8 @@ function dotIcon(ride){
 
 function pinIcon(ride, index){
   const size = index === 0 ? 34 : 28;
-  const cls = ["pin", ride.type === "food" ? "food" : "", index === 0 ? "first" : ""].join(" ").trim();
+  const moved = planState.moved.includes(rideKey(ride));
+  const cls = ["pin", ride.type === "food" ? "food" : "", index === 0 ? "first" : "", moved ? "moved" : ""].join(" ").trim();
   return L.divIcon({ className:"", html:`<div class="${cls}">${index + 1}</div>`, iconSize:[size,size], iconAnchor:[size/2,size/2] });
 }
 
@@ -651,26 +705,30 @@ function drawOptimizedRoute(){
   routeLayers.forEach(layer => parkMap.removeLayer(layer));
   routeLayers = [];
 
-  const coords = currentStops()
-    .filter(r => r.lat && r.lng)
-    .map(r => [r.lat, r.lng]);
+  const legs = planState.ids
+    .map((id, i) => ({ id, coords: planState.legs[i] }))
+    .filter(leg => !completedRideKeys.includes(leg.id) && leg.coords?.length >= 2);
 
   parkMap.invalidateSize();
 
-  if(coords.length < 2){
+  if(!legs.length){
     fitToRides();
     return;
   }
 
-  // Stacked strokes make a neon tube: wide soft haze, tighter glow, bright core, white-hot center.
+  // Next leg: neon tube (haze, glow, core, white-hot centre). Later legs: dim.
   const style = { color:"#aeff00", lineCap:"round", lineJoin:"round", interactive:false };
-  const haze = L.polyline(coords, { ...style, weight:22, opacity:.08 }).addTo(parkMap);
-  const glow = L.polyline(coords, { ...style, weight:12, opacity:.2 }).addTo(parkMap);
-  const line = L.polyline(coords, { ...style, weight:4, opacity:1 }).addTo(parkMap);
-  const core = L.polyline(coords, { ...style, color:"#f4ffd6", weight:1.5, opacity:.85 }).addTo(parkMap);
-  routeLayers = [haze, glow, line, core];
+  const nextLeg = [
+    { weight:22, opacity:.08 }, { weight:12, opacity:.2 }, { weight:4, opacity:1 }, { weight:1.5, opacity:.85, color:"#f4ffd6" }
+  ];
+  const laterLeg = [{ weight:10, opacity:.07 }, { weight:3, opacity:.45 }];
 
-  parkMap.fitBounds(line.getBounds(), { padding:[56,56] });
+  legs.slice().reverse().forEach((leg, r) => {
+    const isNext = r === legs.length - 1;
+    (isNext ? nextLeg : laterLeg).forEach(o => routeLayers.push(L.polyline(leg.coords, { ...style, ...o }).addTo(parkMap)));
+  });
+
+  parkMap.fitBounds(L.latLngBounds(legs.flatMap(leg => leg.coords)), { padding:[56,56] });
 }
 
 function fitToRides(){
@@ -817,7 +875,12 @@ function updateUI(){
   badge.classList.toggle("off", !anyOpen);
   badge.textContent = anyOpen ? "Live" : "Closed";
 
-  setMapStatus(anyOpen ? "" : `${selectedPark} is closed right now. The map shows where every ride is.`);
+  setMapStatus(
+    !anyOpen ? `${selectedPark} is closed right now. The map shows where every ride is.`
+    : planState.estimated ? "Walking times are estimates."
+    : planState.gpsOutside ? "Planning from the park entrance."
+    : ""
+  );
 
   updateNavigationMode(stops, anyOpen);
   updateRouteConfidence(stops);
@@ -1150,4 +1213,4 @@ function updateWarRoom(stops){
 }
 
 // index.html's inline onclick handlers call these; module scope isn't global.
-Object.assign(window, { showScreen, toggleMobileMenu, fetchLiveWaitTimes, reevaluateRoute, launchApp });
+Object.assign(window, { showScreen, toggleMobileMenu, fetchLiveWaitTimes, reevaluateRoute, launchApp, centerOnMe });
