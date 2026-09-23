@@ -1,3 +1,9 @@
+import { loadWalkGraph } from "./walkgraph.js";
+import { runPlanRequest } from "./plan-request.js";
+import { hashSeed } from "./planner.js";
+import { parkClock, isoToParkMinutes, closingMinutes, showtimeMinutes, minutesToClock, formatDuration } from "./livedata.js";
+import { rideDetailsFor } from "./ridedata.js";
+
 let selectedPark = null;
 let parkMap;
 let rideMarkers = [];
@@ -5,10 +11,20 @@ let routeLayers = [];
 let userPrefs = { groupSize: 4, parkHours: 6, thrill: "balanced", walking: "balanced" };
 let completedRideKeys = [];
 let latestRides = [];
-let frozenRoute = [];
 let previousWaits = {};
-let mustRideNames = [];
-let selectedFoodName = null;
+let mustRideIds = [];
+let selectedFoodId = null;
+let parkTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+let parkDate = null;          // "YYYY-MM-DD" in park time
+let parkCloseMin = null;      // park-local minutes; may exceed 1440 after midnight
+let parkMetaReady = null;     // Promise from loadParkMeta()
+let planStartMin = null;
+let walkData = null;          // data/walkways JSON, or null when unavailable
+let rideDetails = {};
+let gps = null;               // { lat, lng, accuracy }
+let lockedNextId = null;
+let planRequestId = 0;
+let planState = emptyPlanState();
 let userFoodPlan = "eat-late";
 
 const PARK_ENTITY_IDS = {
@@ -30,6 +46,19 @@ const PARK_CENTERS = {
   "Cedar Point":[41.4822,-82.6835],
   "Kings Island":[39.3430,-84.2675]
 };
+
+const PARK_SLUGS = {
+  "Magic Kingdom":"magic-kingdom", "EPCOT":"epcot", "Hollywood Studios":"hollywood-studios",
+  "Animal Kingdom":"animal-kingdom", "Disneyland":"disneyland", "Cedar Point":"cedar-point", "Kings Island":"kings-island"
+};
+const MEAL_CANDIDATES = 12;
+
+function emptyPlanState(){
+  return { ids:[], timeline:[], legs:[], baseline:null, estimated:false, warnings:[], reason:null,
+           lockDropped:null, mealStatus:null, startSource:null, gpsOutside:false, summary:null, moved:[] };
+}
+
+const planner = createPlannerClient();
 
 const PREF_LABELS = {
   thrill: { balanced:"Balanced", easy:"Family friendly", extreme:"Big thrills" },
@@ -86,7 +115,10 @@ document.querySelectorAll("#onboarding .options").forEach(group => {
     option.classList.add("selected");
     option.setAttribute("aria-checked", "true");
 
-    if(group.dataset.field === "park") selectedPark = option.dataset.value;
+    if(group.dataset.field === "park"){
+      selectedPark = option.dataset.value;
+      parkMetaReady = loadParkMeta(selectedPark);
+    }
     else document.getElementById(group.dataset.field).value = option.dataset.value;
 
     renderStep();
@@ -110,23 +142,29 @@ document.querySelectorAll("#onboarding input[type=range]").forEach(input => {
 
 renderStep();
 
-function launchApp(){
+async function launchApp(){
   userPrefs = {
     groupSize: Number(document.getElementById("groupSizeVal").textContent),
     parkHours: Number(document.getElementById("parkTimeVal").textContent),
     thrill: document.getElementById("thrillPref").value,
     walking: document.getElementById("walkingPref").value
   };
-
   userFoodPlan = document.getElementById("foodPref").value;
 
   document.getElementById("onboarding").classList.add("hidden");
   document.getElementById("parkName").textContent = selectedPark;
+
+  await (parkMetaReady ??= loadParkMeta(selectedPark));
+  planStartMin = parkNow();
   renderSettings();
+  await loadParkData();
+  requestLocation();
 
   fetchLiveWaitTimes();
   setInterval(fetchLiveWaitTimes, 300000);
 }
+
+function requestLocation(){}
 
 function renderSettings(){
   document.getElementById("settingsPark").textContent = selectedPark;
@@ -135,6 +173,75 @@ function renderSettings(){
   document.getElementById("settingsThrill").textContent = PREF_LABELS.thrill[userPrefs.thrill];
   document.getElementById("settingsWalk").textContent = PREF_LABELS.walking[userPrefs.walking];
   document.getElementById("settingsFood").textContent = PREF_LABELS.food[userFoodPlan];
+}
+
+/* ---------- Park time and data ---------- */
+function parkNow(){
+  return isoToParkMinutes(new Date().toISOString(), parkTimeZone, parkDate);
+}
+
+function budgetEndMin(){
+  return Math.min(planStartMin + userPrefs.parkHours * 60, parkCloseMin ?? Infinity);
+}
+
+async function loadParkMeta(park){
+  try{
+    const json = await fetch(`https://api.themeparks.wiki/v1/entity/${PARK_ENTITY_IDS[park]}/schedule`).then(r => r.json());
+    if(json.timezone) parkTimeZone = json.timezone;
+    parkDate = parkClock(new Date(), parkTimeZone).date;
+    parkCloseMin = closingMinutes(json, parkTimeZone, parkDate);
+  }catch(err){
+    console.warn("[RideFlow] park schedule unavailable", err);
+    parkDate = parkClock(new Date(), parkTimeZone).date;
+    parkCloseMin = null;
+  }
+}
+
+async function loadParkData(){
+  const slug = PARK_SLUGS[selectedPark];
+  const load = path => fetch(path).then(r => r.ok ? r.json() : null).catch(() => null);
+  const [walkways, rides] = await Promise.all([load(`data/walkways/${slug}.json`), load(`data/rides/${slug}.json`)]);
+  walkData = walkways;
+  rideDetails = rides || {};
+  planner.setGraph(walkData);
+}
+
+function createPlannerClient(){
+  let worker = null;
+  let graphJson = null;
+  let fallbackGraph;
+  const pending = new Map();
+
+  try{
+    worker = new Worker(new URL("./planner-worker.js", import.meta.url), { type:"module" });
+    worker.onmessage = e => {
+      const resolve = pending.get(e.data.id);
+      if(resolve){ pending.delete(e.data.id); resolve(e.data); }
+    };
+    worker.onerror = err => {
+      console.error("[RideFlow] planner worker failed; planning on the main thread", err);
+      worker = null;
+      pending.forEach(resolve => resolve(null));
+      pending.clear();
+    };
+  }catch(err){
+    worker = null;
+  }
+
+  return {
+    setGraph(json){
+      graphJson = json;
+      fallbackGraph = undefined;
+      worker?.postMessage({ type:"graph", json });
+    },
+    run(request, id){
+      if(worker) return new Promise(resolve => { pending.set(id, resolve); worker.postMessage({ type:"plan", id, request }); });
+      if(fallbackGraph === undefined) fallbackGraph = graphJson ? loadWalkGraph(graphJson) : null;
+      const quick = { ...request, plannerInput:{ ...request.plannerInput, timeLimitMs:150, beamWidth:60 } };
+      try{ return Promise.resolve({ id, ok:true, ...runPlanRequest(fallbackGraph, quick) }); }
+      catch(err){ return Promise.resolve({ id, ok:false, error:String(err) }); }
+    }
+  };
 }
 
 /* ---------- Navigation ---------- */
@@ -165,7 +272,7 @@ document.addEventListener("click", e => {
   if(!btn) return;
 
   if(btn.dataset.action === "complete" && btn.dataset.key) completeRide(btn.dataset.key);
-  if(btn.dataset.action === "star") togglePriorityItem(btn.dataset.name);
+  if(btn.dataset.action === "star") togglePriorityItem(btn.dataset.key);
 });
 
 /* ---------- Scoring ---------- */
@@ -174,7 +281,7 @@ function waitClass(wait){ if(wait <= 15) return "low"; if(wait <= 35) return "me
 // Longest wait among rides the guest hasn't starred, so we never say "avoid" a must-ride.
 function longestWait(rides){
   return rides
-    .filter(r => !mustRideNames.includes(r.name))
+    .filter(r => !mustRideIds.includes(rideKey(r)))
     .sort((a,b) => b.wait_time - a.wait_time)[0] || null;
 }
 
@@ -185,14 +292,134 @@ function rideKey(ride){
 }
 
 function currentStops(){
-  return frozenRoute.filter(r => !completedRideKeys.includes(rideKey(r)));
+  const byId = new Map(latestRides.map(r => [rideKey(r), r]));
+  return planState.timeline
+    .filter(t => !completedRideKeys.includes(t.id) && byId.has(t.id))
+    .map(t => {
+      const r = byId.get(t.id);
+      return {
+        ...r, arrive:t.arrive, start:t.start, walkMin:t.walkMin, waitMin:t.waitMin, score:t.points,
+        food_time: r.type === "food" ? `Meal stop around ${minutesToClock(t.start)}` : undefined
+      };
+    });
 }
+
+function mealCandidates(){
+  const open = latestRides.filter(r =>
+    r.type === "food" && r.lat && r.lng &&
+    !completedRideKeys.includes(rideKey(r)) &&
+    !(userPrefs.thrill === "easy" && r.servesAlcohol)
+  );
+  if(selectedFoodId) return open.filter(r => rideKey(r) === selectedFoodId);
+  return open.sort((a, b) => estimateFoodDelay(a) - estimateFoodDelay(b)).slice(0, MEAL_CANDIDATES);
+}
+
+function insideBbox(p){
+  const b = walkData?.bbox;
+  return !!b && p.lat >= b[0] && p.lat <= b[2] && p.lng >= b[1] && p.lng <= b[3];
+}
+
+function startPoint(){
+  const gpsUsable = gps && gps.accuracy <= 50;
+  if(gpsUsable && insideBbox(gps)) return { lat:gps.lat, lng:gps.lng, source:"gps" };
+
+  const last = [...completedRideKeys].reverse()
+    .map(key => latestRides.find(r => rideKey(r) === key))
+    .find(r => r?.lat && r?.lng);
+  if(last) return { lat:last.lat, lng:last.lng, node:walkData?.anchors?.[last.id]?.node, source:"last", gpsOutside:!!gpsUsable };
+
+  const entrance = walkData?.anchors?.entrance;
+  if(entrance){
+    const [lat, lng] = walkData.nodes[entrance.node];
+    return { lat, lng, node:entrance.node, source:"entrance", gpsOutside:!!gpsUsable };
+  }
+  const [lat, lng] = PARK_CENTERS[selectedPark];
+  return { lat, lng, source:"entrance", gpsOutside:!!gpsUsable };
+}
+
+function buildPlanRequest({ force, prefsChanged }){
+  const mealDone = latestRides.some(r => r.type === "food" && completedRideKeys.includes(rideKey(r)));
+  const rides = latestRides.filter(r => r.type !== "food" && r.is_open && r.lat && r.lng && !completedRideKeys.includes(rideKey(r)));
+  const node = r => walkData?.anchors?.[r.id]?.node;
+
+  const stops = [
+    ...rides.map(r => {
+      const d = rideDetailsFor(rideDetails, r);
+      return {
+        id:rideKey(r), name:r.name, kind: r.type === "show" && r.showtimes?.length ? "show" : "ride",
+        lat:r.lat, lng:r.lng, node:node(r), wait:r.wait_time, duration:d.durationMin,
+        thrill:d.thrill, popularity:d.popularity, kidFriendly:d.kidFriendly, minHeightIn:d.minHeightIn,
+        showtimes:r.showtimes
+      };
+    }),
+    ...(mealDone ? [] : mealCandidates()).map(f => ({
+      id:rideKey(f), name:f.name, kind:"meal", lat:f.lat, lng:f.lng, node:node(f), mealDelay:estimateFoodDelay(f)
+    }))
+  ];
+
+  const remainingPlan = planState.ids.filter(id => !completedRideKeys.includes(id));
+  const names = Object.fromEntries(latestRides.map(r => [rideKey(r), r.name]));
+
+  return {
+    start: startPoint(),
+    stops,
+    plannerInput: {
+      prefs: { ...userPrefs, food: mealDone ? "skip-food" : userFoodPlan },
+      now: parkNow(),
+      planStart: planStartMin,
+      budgetEnd: budgetEndMin(),
+      mustRideIds: mustRideIds.filter(id => !completedRideKeys.includes(id)),
+      lockedNextId,
+      previousPlan: remainingPlan.length ? { ids:remainingPlan, names } : null,
+      previousWaits,
+      prefsChanged,
+      force,
+      seed: hashSeed(`${PARK_SLUGS[selectedPark]}|${parkDate}|${planStartMin}`),
+      maxIterations: 40000,
+      timeLimitMs: 300,
+      beamWidth: 200
+    }
+  };
+}
+
+async function requestPlan({ force = false, prefsChanged = false } = {}){
+  if(!latestRides.length || planStartMin === null) return;
+  const request = buildPlanRequest({ force, prefsChanged });
+  const id = ++planRequestId;
+  let reply = await planner.run(request, id);
+  if(!reply) reply = await planner.run(request, id);   // worker died; client now plans on the main thread
+  if(id !== planRequestId) return;                     // a newer request superseded this one
+  if(!reply?.ok){
+    console.error("[RideFlow] planner failed:", reply?.error);
+    return;
+  }
+  applyPlan(reply, request);
+  renderRoute();
+}
+
+function applyPlan(reply, request){
+  const { result, legs, baseline, estimated } = reply;
+  const prior = planState.ids.filter(id => !completedRideKeys.includes(id));
+  planState = {
+    ids: result.plan.ids,
+    timeline: result.plan.timeline,
+    legs, baseline, estimated,
+    warnings: result.warnings,
+    reason: result.reason,
+    lockDropped: result.lockDropped,
+    mealStatus: result.mealStatus,
+    startSource: request.start.source,
+    gpsOutside: !!request.start.gpsOutside,
+    summary: { rides:result.plan.rides, end:result.plan.end, walkMeters:result.plan.walkMeters, walkMin:result.plan.walkMin, waitMin:result.plan.waitMin },
+    moved: prior.length ? result.plan.ids.filter((id, i) => prior.indexOf(id) !== i) : []
+  };
+  lockedNextId = result.plan.ids[0] ?? null;}
 
 function detectLineSpike(openRides){
   const rising = openRides
     .filter(r => r.type !== "food")
     .map(r => {
-      const oldWait = previousWaits[r.name];
+      const oldWait = previousWaits[rideKey(r)];
       const currentWait = r.wait_time;
 
       if(oldWait === undefined) return null;
@@ -202,7 +429,7 @@ function detectLineSpike(openRides){
       return {
         ...r,
         jump,
-        spikeRisk: jump * 3 + currentWait * 0.35 + calculateRideScore(r) * 0.25
+        spikeRisk: jump * 3 + currentWait * 0.35
       };
     })
     .filter(r => r && r.jump >= 5)
@@ -255,131 +482,6 @@ function estimateFoodDelay(restaurant){
   delay += variation * 3;
 
   return Math.round(Math.max(5, delay) / 5) * 5;
-}
-
-function calculateRideScore(ride){
-  const wait = Number(ride.wait_time || 0);
-  const name = ride.name.toLowerCase();
-  let score = 100 - wait * 0.6;
-
-  const isThrill = name.includes("mountain") || name.includes("coaster") || name.includes("thunder");
-  const isFamily = name.includes("dumbo") || name.includes("small world") || name.includes("carousel") || name.includes("princess");
-  const isClassic = name.includes("pirates") || name.includes("haunted") || name.includes("jungle");
-
-  if(userPrefs.thrill === "extreme" && isThrill) score += 50;
-  if(userPrefs.thrill === "easy" && isFamily) score += 50;
-  if(userPrefs.thrill === "balanced" && (isClassic || isFamily)) score += 20;
-
-  if(userPrefs.groupSize >= 6 && isFamily) score += 12;
-  if(wait >= 60) score -= 20;
-  if(mustRideNames.includes(ride.name)) score += 28;
-
-  return Math.max(1, Math.round(score));
-}
-
-function distanceBetween(a,b){
-  if(!a.lat || !a.lng || !b.lat || !b.lng) return 999;
-  const dx = a.lat - b.lat;
-  const dy = a.lng - b.lng;
-  return Math.sqrt(dx*dx + dy*dy);
-}
-
-function pickFoodStop(rides){
-  if(userFoodPlan === "skip-food") return null;
-
-  const restaurants = rides.filter(r =>
-    r.type === "food" &&
-    r.is_open &&
-    r.lat &&
-    r.lng &&
-    !completedRideKeys.includes(rideKey(r)) &&
-    !(userPrefs.thrill === "easy" && r.servesAlcohol)
-  );
-
-  if(!restaurants.length) return null;
-
-  if(selectedFoodName){
-    return restaurants.find(r => r.name === selectedFoodName) || null;
-  }
-
-  const rideRoute = rides
-    .filter(r => r.type !== "food" && r.is_open && r.lat && r.lng && !completedRideKeys.includes(rideKey(r)))
-    .map(r => ({...r, score: calculateRideScore(r)}))
-    .sort((a,b) => b.score - a.score)
-    .slice(0,6);
-
-  return restaurants
-    .map(food => {
-      const nearbyBonus = rideRoute.reduce((best, ride) => {
-        const dist = distanceBetween(food, ride);
-        return Math.max(best, 40 - dist * 120000);
-      }, 0);
-
-      return {
-        ...food,
-        score: 80 - estimateFoodDelay(food) * 0.8 + nearbyBonus
-      };
-    })
-    .sort((a,b) => b.score - a.score)[0];
-}
-
-function buildOptimizedRoute(rides){
-  let candidates = rides
-    .filter(r => r.type !== "food" && r.is_open && r.lat && r.lng && !completedRideKeys.includes(rideKey(r)))
-    .map(r => ({
-      ...r,
-      score: calculateRideScore(r) + Math.random() * 6
-    }));
-
-  if(!candidates.length) return [];
-
-  const walkPenalty =
-    userPrefs.walking === "low" ? 26000 :
-    userPrefs.walking === "max" ? 8000 :
-    15000;
-
-  const start = {
-    lat:PARK_CENTERS[selectedPark][0],
-    lng:PARK_CENTERS[selectedPark][1]
-  };
-
-  candidates = candidates
-    .map(r => ({
-      ...r,
-      routeScore:r.score - distanceBetween(start,r) * walkPenalty
-    }))
-    .sort((a,b) => b.routeScore - a.routeScore);
-
-  const route = [candidates.shift()];
-
-  while(route.length < 8 && candidates.length){
-    const current = route[route.length - 1];
-
-    candidates = candidates
-      .map(r => ({
-        ...r,
-        routeScore:
-          r.score
-          + (mustRideNames.includes(r.name) ? 35 : 0)
-          - distanceBetween(current,r) * walkPenalty
-      }))
-      .sort((a,b) => b.routeScore - a.routeScore);
-
-    route.push(candidates.shift());
-  }
-
-  const foodStop = pickFoodStop(rides);
-
-  if(foodStop){
-    const insertIndex = userFoodPlan === "eat-early" ? 2 : 4;
-    route.splice(Math.min(insertIndex, route.length), 0, {
-      ...foodStop,
-      score:90,
-      food_time:userFoodPlan === "eat-early" ? "Early meal stop" : "Later meal stop"
-    });
-  }
-
-  return route;
 }
 
 function calculateTimeSaved(openRides){
@@ -437,9 +539,7 @@ function renderRoute(){
 }
 
 function reevaluateRoute(){
-  frozenRoute = buildOptimizedRoute(latestRides);
-  renderRoute();
-
+  requestPlan({ force:true });
   const btn = document.getElementById("reevaluateBtn");
   btn.textContent = "Route updated";
   setTimeout(() => btn.textContent = "Reevaluate route", 1000);
@@ -449,6 +549,9 @@ function completeRide(key){
   if(!completedRideKeys.includes(key)){
     completedRideKeys.push(key);
   }
+
+  // Checking off the next stop locks the one after it (spec §6.5).
+  if(planState.ids[0] === key) lockedNextId = planState.ids[1] ?? null;
 
   document.querySelectorAll(`[data-ride="${CSS.escape(key)}"]`).forEach(row => {
     row.querySelector(".check")?.classList.add("done");
@@ -460,24 +563,18 @@ function completeRide(key){
 
   setTimeout(() => {
     goNow.classList.remove("done");
-    frozenRoute = buildOptimizedRoute(latestRides);
     renderRoute();
+    requestPlan();
   }, 400);
 }
 
-function togglePriorityItem(name){
-  const item = latestRides.find(r => r.name === name);
-
-  if(item && item.type === "food"){
-    selectedFoodName = selectedFoodName === name ? null : name;
-  } else if(mustRideNames.includes(name)){
-    mustRideNames = mustRideNames.filter(r => r !== name);
-  } else {
-    mustRideNames.push(name);
-  }
-
-  frozenRoute = buildOptimizedRoute(latestRides);
-  renderRoute();
+function togglePriorityItem(key){
+  const item = latestRides.find(r => rideKey(r) === key);
+  if(item?.type === "food") selectedFoodId = selectedFoodId === key ? null : key;
+  else if(mustRideIds.includes(key)) mustRideIds = mustRideIds.filter(id => id !== key);
+  else mustRideIds.push(key);
+  renderMustRideList(latestRides);
+  requestPlan();
 }
 
 /* ---------- Map ---------- */
@@ -610,6 +707,9 @@ async function fetchLiveWaitTimes(){
       getJSON(`https://api.themeparks.wiki/v1/entity/${entityId}/children`)
     ]);
 
+    if(data.timezone) parkTimeZone = data.timezone;
+    const nowMin = parkNow();
+
     const locationMap = {};
     childrenData.children.forEach(c => {
       if(c.location){
@@ -621,15 +721,17 @@ async function fetchLiveWaitTimes(){
     });
 
     const attractions = data.liveData
-      .filter(r => r.entityType === "ATTRACTION")
+      .filter(r => r.entityType === "ATTRACTION" || (r.entityType === "SHOW" && r.showtimes?.length))
       .map(r => {
         const loc = locationMap[r.id] || {};
+        const show = r.entityType === "SHOW";
         return {
           id:r.id,
           name:cleanRideName(r.name),
-          type:"ride",
+          type: show ? "show" : "ride",
           is_open:r.status === "OPERATING",
           wait_time:Number(r.queue?.STANDBY?.waitTime ?? 0),
+          showtimes: show ? showtimeMinutes(r.showtimes, parkTimeZone, parkDate).filter(t => t > nowMin) : undefined,
           lat:loc.lat,
           lng:loc.lng
         };
@@ -665,12 +767,13 @@ async function fetchLiveWaitTimes(){
       .filter(r => r.lat && r.lng);
 
     latestRides = [...attractions, ...restaurants];
-    frozenRoute = buildOptimizedRoute(latestRides);
 
     document.getElementById("nextRetry").classList.add("hidden");
     renderRoute();
 
-    previousWaits = Object.fromEntries(latestRides.map(r => [r.name, r.wait_time]));
+    const planned = requestPlan();   // reads the old previousWaits synchronously
+    previousWaits = Object.fromEntries(latestRides.map(r => [rideKey(r), r.wait_time]));
+    await planned;
 
   }catch(err){
     console.error(err);
@@ -840,29 +943,18 @@ function renderRouteList(stops, anyOpen){
   }).join("");
 }
 
-function rideCategory(name){
-  const n = String(name || "").toLowerCase();
-  const item = latestRides.find(r => r.name === name);
-  if(item && item.type === "food") return "Food";
-
-  if(n.includes("mountain") || n.includes("coaster") || n.includes("tower") || n.includes("thunder") || n.includes("flight") || n.includes("rise") || n.includes("guardians") || n.includes("test track") || n.includes("millennium") || n.includes("slinky dog")) return "Thrill";
-
-  if(n.includes("dumbo") || n.includes("carousel") || n.includes("small world") || n.includes("princess") || n.includes("winnie") || n.includes("peter pan") || n.includes("little mermaid") || n.includes("mickey") || n.includes("mania")) return "Kids";
-
-  if(n.includes("show") || n.includes("theater") || n.includes("philharmagic") || n.includes("country bear") || n.includes("hall") || n.includes("tiki") || n.includes("carousel of progress") || n.includes("presents")) return "Shows";
-
+function rideCategory(ride){
+  if(ride.type === "food") return "Food";
+  const d = rideDetailsFor(rideDetails, ride);
+  if(ride.type === "show" || d.type === "show") return "Shows";
+  if(d.thrill >= 4) return "Thrill";
+  if(d.kidFriendly && d.thrill <= 2) return "Kids";
   return "Other";
 }
 
-function popularityScore(name){
-  const n = name.toLowerCase();
-
-  if(n.includes("rise") || n.includes("flight") || n.includes("guardians")) return 100;
-  if(n.includes("space") || n.includes("slinky") || n.includes("tower")) return 95;
-  if(n.includes("thunder") || n.includes("pirates") || n.includes("haunted")) return 90;
-  if(n.includes("jungle") || n.includes("peter pan")) return 85;
-
-  return 60;
+// Restaurants have no ride details; skip the lookup so they don't log as missing.
+function popularityOf(ride){
+  return ride.type === "food" ? 0 : rideDetailsFor(rideDetails, ride).popularity || 0;
 }
 
 function renderMustRideList(rides){
@@ -872,8 +964,8 @@ function renderMustRideList(rides){
 
   rides
     .filter(r => r && r.name && !completedRideKeys.includes(rideKey(r)))
-    .sort((a,b) => popularityScore(b.name) - popularityScore(a.name))
-    .forEach(r => groups[rideCategory(r.name)].push(r));
+    .sort((a, b) => popularityOf(b) - popularityOf(a) || a.name.localeCompare(b.name))
+    .forEach(r => groups[rideCategory(r)].push(r));
 
   el.innerHTML = Object.keys(groups).filter(g => groups[g].length).map(group => `
     <details class="group" data-group="${group}"${openGroups.includes(group) ? " open" : ""}>
@@ -881,7 +973,8 @@ function renderMustRideList(rides){
       <div class="list">
         ${groups[group].map(r => {
           const food = r.type === "food";
-          const on = mustRideNames.includes(r.name) || selectedFoodName === r.name;
+          const key = rideKey(r);
+          const on = mustRideIds.includes(key) || selectedFoodId === key;
           const status = food ? `~${estimateFoodDelay(r)} min` : r.is_open ? waitText(r.wait_time) : "Closed";
           const cls = food ? "meal" : r.is_open ? waitClass(r.wait_time) : "closed";
           const action = on ? "Remove" : "Add";
@@ -889,7 +982,7 @@ function renderMustRideList(rides){
 
           return `
             <div class="row">
-              <button class="star${on ? " on" : ""}" data-action="star" data-name="${esc(r.name)}" aria-pressed="${on}" aria-label="${action} ${esc(r.name)} ${target}">${STAR_SVG}</button>
+              <button class="star${on ? " on" : ""}" data-action="star" data-key="${esc(key)}" aria-pressed="${on}" aria-label="${action} ${esc(r.name)} ${target}">${STAR_SVG}</button>
               <span class="row-name">${esc(r.name)}</span>
               <span class="wait ${cls}">${status}</span>
             </div>
@@ -914,7 +1007,7 @@ function updateAI(stops, anyOpen){
   const worst = longestWait(rides);
 
   const droppedRide = latestRides.find(r => {
-    const oldWait = previousWaits[r.name];
+    const oldWait = previousWaits[rideKey(r)];
     return oldWait && oldWait >= 45 && oldWait - r.wait_time >= 20;
   });
 
@@ -928,7 +1021,7 @@ function updateAI(stops, anyOpen){
 
   document.getElementById("aiAlertTitle").textContent = droppedRide ? "Wait drop" : "Crowd alert";
   document.getElementById("aiAlert").innerHTML = droppedRide
-    ? `<strong>${esc(droppedRide.name)}</strong> fell from ${previousWaits[droppedRide.name]} to ${droppedRide.wait_time} min.`
+    ? `<strong>${esc(droppedRide.name)}</strong> fell from ${previousWaits[rideKey(droppedRide)]} to ${droppedRide.wait_time} min.`
     : worst ? `Avoid <strong>${esc(worst.name)}</strong> for now (${worst.wait_time} min wait).` : "No long waits on your route.";
 
   document.getElementById("aiProjection").innerHTML =
@@ -978,7 +1071,7 @@ function updateFoodTiming(){
   }
 
   const hour = new Date().getHours();
-  const currentFood = frozenRoute.find(r => r.type === "food");
+  const currentFood = currentStops().find(r => r.type === "food");
   const waitEstimate = currentFood ? estimateFoodDelay(currentFood) : 25;
 
   let bestHour;

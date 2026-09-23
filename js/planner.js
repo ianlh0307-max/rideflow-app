@@ -422,8 +422,11 @@ function explainChange(input, newPlan, ctx){
 
 export function planDay(input){
   let ctx = buildContext(input);
-  if(ctx.lockedId && !evaluate([ctx.lockedId], { ...ctx, mealWin: null }).valid){
-    ctx = { ...ctx, lockDropped: ctx.lockedId, lockedId: null };
+  // A locked stop that can no longer fit unlocks quietly; lockDropped is only for closures.
+  if(ctx.lockedId){
+    const stop = ctx.byId.get(ctx.lockedId);
+    const times = stopTimes(stop, ctx.now + ctx.matrix.minutes[ctx.startIdx][stop.idx], ctx);
+    if(!times || times.end > ctx.budgetEnd) ctx = { ...ctx, lockedId: null };
   }
 
   // One time limit covers the whole search: annealing gets what beam search leaves.

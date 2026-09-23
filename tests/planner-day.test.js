@@ -123,3 +123,18 @@ test("a 60-stop park plans within 350 ms", () => {
   const ms = performance.now() - t;
   assert(ms < 350, `took ${ms.toFixed(0)} ms`);
 }, { perf: true });
+
+test("a locked meal stop stays first and isn't reported as closed", () => {
+  // Regression: the lock check ran with meals switched off, so a locked meal always looked impossible.
+  const park = makePark([ride("a", 100, 0), ride("b", 200, 0), meal("m", 50, 0)]);
+  const r = planDay(baseInput(park, { now: 13 * 60 + 40, planStart: 9 * 60, prefs:{ food:"eat-late" }, lockedNextId:"m" }));
+  assertEqual(r.plan.ids[0], "m");
+  assertEqual(r.lockDropped, null);
+});
+
+test("a locked stop that no longer fits unlocks quietly (not 'closed')", () => {
+  const park = makePark([ride("a", 100, 0), ride("slow", 50, 0, { wait: 500 })]);
+  const r = planDay(baseInput(park, { lockedNextId:"slow" }));
+  assertEqual(r.lockDropped, null);
+  assert(r.plan.valid && r.plan.ids[0] !== "slow");
+});
